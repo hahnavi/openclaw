@@ -52,7 +52,6 @@ import {
   resolveBootstrapMaxChars,
   resolveBootstrapTotalMaxChars,
   validateAnthropicTurns,
-  validateGeminiTurns,
 } from "../../pi-embedded-helpers.js";
 import { subscribeEmbeddedPiSession } from "../../pi-embedded-subscribe.js";
 import { applyPiCompactionSettingsFromConfig } from "../../pi-settings.js";
@@ -82,12 +81,6 @@ import { isRunnerAbortError } from "../abort.js";
 import { appendCacheTtlTimestamp, isCacheTtlEligibleProvider } from "../cache-ttl.js";
 import { buildEmbeddedExtensionFactories } from "../extensions.js";
 import { applyExtraParamsToAgent } from "../extra-params.js";
-import {
-  logToolSchemasForGoogle,
-  sanitizeAntigravityThinkingBlocks,
-  sanitizeSessionHistory,
-  sanitizeToolsForGoogle,
-} from "../google.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "../history.js";
 import { log } from "../logger.js";
 import { buildModelAliasLines } from "../model.js";
@@ -395,12 +388,11 @@ export async function runEmbeddedAttempt(
             params.requireExplicitMessageTarget ?? isSubagentSessionKey(params.sessionKey),
           disableMessageTool: params.disableMessageTool,
         });
-    const tools = sanitizeToolsForGoogle({ tools: toolsRaw, provider: params.provider });
+    const tools = toolsRaw;
     const allowedToolNames = collectAllowedToolNames({
       tools,
       clientTools: params.clientTools,
     });
-    logToolSchemasForGoogle({ tools, provider: params.provider });
 
     const machineName = await getMachineDisplayName();
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
@@ -760,24 +752,11 @@ export async function runEmbeddedAttempt(
       }
 
       try {
-        const prior = await sanitizeSessionHistory({
-          messages: activeSession.messages,
-          modelApi: params.model.api,
-          modelId: params.modelId,
-          provider: params.provider,
-          allowedToolNames,
-          config: params.config,
-          sessionManager,
-          sessionId: params.sessionId,
-          policy: transcriptPolicy,
-        });
+        const prior = activeSession.messages;
         cacheTrace?.recordStage("session:sanitized", { messages: prior });
-        const validatedGemini = transcriptPolicy.validateGeminiTurns
-          ? validateGeminiTurns(prior)
-          : prior;
         const validated = transcriptPolicy.validateAnthropicTurns
-          ? validateAnthropicTurns(validatedGemini)
-          : validatedGemini;
+          ? validateAnthropicTurns(prior)
+          : prior;
         const truncated = limitHistoryTurns(
           validated,
           getDmHistoryLimitFromSessionKey(params.sessionKey, params.config),
@@ -1018,9 +997,7 @@ export async function runEmbeddedAttempt(
             sessionManager.resetLeaf();
           }
           const sessionContext = sessionManager.buildSessionContext();
-          const sanitizedOrphan = transcriptPolicy.sanitizeThinkingSignatures
-            ? sanitizeAntigravityThinkingBlocks(sessionContext.messages)
-            : sessionContext.messages;
+          const sanitizedOrphan = sessionContext.messages;
           activeSession.agent.replaceMessages(sanitizedOrphan);
           log.warn(
             `Removed orphaned user message to prevent consecutive user turns. ` +

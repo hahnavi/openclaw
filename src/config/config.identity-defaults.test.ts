@@ -125,14 +125,14 @@ describe("config identity defaults", () => {
         models: {
           mode: "merge",
           providers: {
-            minimax: {
-              baseUrl: "https://api.minimax.io/anthropic",
+            moonshot: {
+              baseUrl: "https://api.moonshot.ai/v1",
               apiKey: "",
-              api: "anthropic-messages",
+              api: "openai-completions",
               models: [
                 {
-                  id: "MiniMax-M2.1",
-                  name: "MiniMax M2.1",
+                  id: "kimi-k2.5",
+                  name: "Kimi K2.5",
                   reasoning: false,
                   input: ["text"],
                   cost: {
@@ -141,7 +141,7 @@ describe("config identity defaults", () => {
                     cacheRead: 0,
                     cacheWrite: 0,
                   },
-                  contextWindow: 200000,
+                  contextWindow: 256000,
                   maxTokens: 8192,
                 },
               ],
@@ -150,7 +150,7 @@ describe("config identity defaults", () => {
         },
       });
 
-      expect(cfg.models?.providers?.minimax?.baseUrl).toBe("https://api.minimax.io/anthropic");
+      expect(cfg.models?.providers?.moonshot?.baseUrl).toBe("https://api.moonshot.ai/v1");
     });
   });
 

@@ -61,24 +61,6 @@ describe("applyPluginAutoEnable", () => {
     expect(result.changes.join("\n")).toContain("IRC configured, enabled automatically.");
   });
 
-  it("auto-enables provider auth plugins when profiles exist", () => {
-    const result = applyPluginAutoEnable({
-      config: {
-        auth: {
-          profiles: {
-            "google-antigravity:default": {
-              provider: "google-antigravity",
-              mode: "oauth",
-            },
-          },
-        },
-      },
-      env: {},
-    });
-
-    expect(result.config.plugins?.entries?.["google-antigravity-auth"]?.enabled).toBe(true);
-  });
-
   it("skips when plugins are globally disabled", () => {
     const result = applyPluginAutoEnable({
       config: {

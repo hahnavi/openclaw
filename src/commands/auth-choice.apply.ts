@@ -4,10 +4,6 @@ import type { WizardPrompter } from "../wizard/prompts.js";
 import { applyAuthChoiceApiProviders } from "./auth-choice.apply.api-providers.js";
 import { applyAuthChoiceBytePlus } from "./auth-choice.apply.byteplus.js";
 import { applyAuthChoiceCopilotProxy } from "./auth-choice.apply.copilot-proxy.js";
-import { applyAuthChoiceGitHubCopilot } from "./auth-choice.apply.github-copilot.js";
-import { applyAuthChoiceGoogleAntigravity } from "./auth-choice.apply.google-antigravity.js";
-import { applyAuthChoiceGoogleGeminiCli } from "./auth-choice.apply.google-gemini-cli.js";
-import { applyAuthChoiceMiniMax } from "./auth-choice.apply.minimax.js";
 import { applyAuthChoiceOAuth } from "./auth-choice.apply.oauth.js";
 import { applyAuthChoiceOpenAI } from "./auth-choice.apply.openai.js";
 import { applyAuthChoiceQwenPortal } from "./auth-choice.apply.qwen-portal.js";
@@ -40,10 +36,6 @@ export async function applyAuthChoice(
     applyAuthChoiceOpenAI,
     applyAuthChoiceOAuth,
     applyAuthChoiceApiProviders,
-    applyAuthChoiceMiniMax,
-    applyAuthChoiceGitHubCopilot,
-    applyAuthChoiceGoogleAntigravity,
-    applyAuthChoiceGoogleGeminiCli,
     applyAuthChoiceCopilotProxy,
     applyAuthChoiceQwenPortal,
     applyAuthChoiceXAI,

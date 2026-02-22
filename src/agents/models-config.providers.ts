@@ -1,12 +1,7 @@
 import type { OpenClawConfig } from "../config/config.js";
 import type { ModelDefinitionConfig } from "../config/types.models.js";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import {
-  DEFAULT_COPILOT_API_BASE_URL,
-  resolveCopilotApiToken,
-} from "../providers/github-copilot-token.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "./auth-profiles.js";
-import { discoverBedrockModels } from "./bedrock-discovery.js";
 import {
   buildBytePlusModelDefinition,
   BYTEPLUS_BASE_URL,
@@ -14,10 +9,6 @@ import {
   BYTEPLUS_CODING_BASE_URL,
   BYTEPLUS_CODING_MODEL_CATALOG,
 } from "./byteplus-models.js";
-import {
-  buildCloudflareAiGatewayModelDefinition,
-  resolveCloudflareAiGatewayBaseUrl,
-} from "./cloudflare-ai-gateway.js";
 import {
   buildDoubaoModelDefinition,
   DOUBAO_BASE_URL,
@@ -31,13 +22,8 @@ import {
   HUGGINGFACE_MODEL_CATALOG,
   buildHuggingfaceModelDefinition,
 } from "./huggingface-models.js";
-import { resolveAwsSdkEnvVarName, resolveEnvApiKey } from "./model-auth.js";
+import { resolveEnvApiKey } from "./model-auth.js";
 import { OLLAMA_NATIVE_BASE_URL } from "./ollama-stream.js";
-import {
-  buildSyntheticModelDefinition,
-  SYNTHETIC_BASE_URL,
-  SYNTHETIC_MODEL_CATALOG,
-} from "./synthetic-models.js";
 import {
   TOGETHER_BASE_URL,
   TOGETHER_MODEL_CATALOG,
@@ -48,74 +34,11 @@ import { discoverVeniceModels, VENICE_BASE_URL } from "./venice-models.js";
 type ModelsConfig = NonNullable<OpenClawConfig["models"]>;
 export type ProviderConfig = NonNullable<ModelsConfig["providers"]>[string];
 
-const MINIMAX_PORTAL_BASE_URL = "https://api.minimax.io/anthropic";
-const MINIMAX_DEFAULT_MODEL_ID = "MiniMax-M2.1";
-const MINIMAX_DEFAULT_VISION_MODEL_ID = "MiniMax-VL-01";
-const MINIMAX_DEFAULT_CONTEXT_WINDOW = 200000;
-const MINIMAX_DEFAULT_MAX_TOKENS = 8192;
-const MINIMAX_OAUTH_PLACEHOLDER = "minimax-oauth";
-// Pricing per 1M tokens (USD) — https://platform.minimaxi.com/document/Price
-const MINIMAX_API_COST = {
-  input: 0.3,
-  output: 1.2,
-  cacheRead: 0.03,
-  cacheWrite: 0.12,
-};
-
-type ProviderModelConfig = NonNullable<ProviderConfig["models"]>[number];
-
-function buildMinimaxModel(params: {
-  id: string;
-  name: string;
-  reasoning: boolean;
-  input: ProviderModelConfig["input"];
-}): ProviderModelConfig {
-  return {
-    id: params.id,
-    name: params.name,
-    reasoning: params.reasoning,
-    input: params.input,
-    cost: MINIMAX_API_COST,
-    contextWindow: MINIMAX_DEFAULT_CONTEXT_WINDOW,
-    maxTokens: MINIMAX_DEFAULT_MAX_TOKENS,
-  };
-}
-
-function buildMinimaxTextModel(params: {
-  id: string;
-  name: string;
-  reasoning: boolean;
-}): ProviderModelConfig {
-  return buildMinimaxModel({ ...params, input: ["text"] });
-}
-
-const XIAOMI_BASE_URL = "https://api.xiaomimimo.com/anthropic";
-export const XIAOMI_DEFAULT_MODEL_ID = "mimo-v2-flash";
-const XIAOMI_DEFAULT_CONTEXT_WINDOW = 262144;
-const XIAOMI_DEFAULT_MAX_TOKENS = 8192;
-const XIAOMI_DEFAULT_COST = {
-  input: 0,
-  output: 0,
-  cacheRead: 0,
-  cacheWrite: 0,
-};
-
 const MOONSHOT_BASE_URL = "https://api.moonshot.ai/v1";
 const MOONSHOT_DEFAULT_MODEL_ID = "kimi-k2.5";
 const MOONSHOT_DEFAULT_CONTEXT_WINDOW = 256000;
 const MOONSHOT_DEFAULT_MAX_TOKENS = 8192;
 const MOONSHOT_DEFAULT_COST = {
-  input: 0,
-  output: 0,
-  cacheRead: 0,
-  cacheWrite: 0,
-};
-
-const KIMI_CODING_BASE_URL = "https://api.kimi.com/coding/";
-const KIMI_CODING_DEFAULT_MODEL_ID = "k2p5";
-const KIMI_CODING_DEFAULT_CONTEXT_WINDOW = 262144;
-const KIMI_CODING_DEFAULT_MAX_TOKENS = 32768;
-const KIMI_CODING_DEFAULT_COST = {
   input: 0,
   output: 0,
   cacheRead: 0,
@@ -323,10 +246,6 @@ function resolveEnvApiKeyVarName(provider: string): string | undefined {
   return match ? match[1] : undefined;
 }
 
-function resolveAwsSdkApiKeyVarName(): string {
-  return resolveAwsSdkEnvVarName() ?? "AWS_PROFILE";
-}
-
 function resolveApiKeyFromProfiles(params: {
   provider: string;
   store: ReturnType<typeof ensureAuthProfileStore>;
@@ -345,29 +264,6 @@ function resolveApiKeyFromProfiles(params: {
     }
   }
   return undefined;
-}
-
-export function normalizeGoogleModelId(id: string): string {
-  if (id === "gemini-3-pro") {
-    return "gemini-3-pro-preview";
-  }
-  if (id === "gemini-3-flash") {
-    return "gemini-3-flash-preview";
-  }
-  return id;
-}
-
-function normalizeGoogleProvider(provider: ProviderConfig): ProviderConfig {
-  let mutated = false;
-  const models = provider.models.map((model) => {
-    const nextId = normalizeGoogleModelId(model.id);
-    if (nextId === model.id) {
-      return model;
-    }
-    mutated = true;
-    return { ...model, id: nextId };
-  });
-  return mutated ? { ...provider, models } : provider;
 }
 
 export function normalizeProviders(params: {
@@ -405,92 +301,22 @@ export function normalizeProviders(params: {
     const hasModels =
       Array.isArray(normalizedProvider.models) && normalizedProvider.models.length > 0;
     if (hasModels && !normalizedProvider.apiKey?.trim()) {
-      const authMode =
-        normalizedProvider.auth ?? (normalizedKey === "amazon-bedrock" ? "aws-sdk" : undefined);
-      if (authMode === "aws-sdk") {
-        const apiKey = resolveAwsSdkApiKeyVarName();
+      const fromEnv = resolveEnvApiKeyVarName(normalizedKey);
+      const fromProfiles = resolveApiKeyFromProfiles({
+        provider: normalizedKey,
+        store: authStore,
+      });
+      const apiKey = fromEnv ?? fromProfiles;
+      if (apiKey?.trim()) {
         mutated = true;
         normalizedProvider = { ...normalizedProvider, apiKey };
-      } else {
-        const fromEnv = resolveEnvApiKeyVarName(normalizedKey);
-        const fromProfiles = resolveApiKeyFromProfiles({
-          provider: normalizedKey,
-          store: authStore,
-        });
-        const apiKey = fromEnv ?? fromProfiles;
-        if (apiKey?.trim()) {
-          mutated = true;
-          normalizedProvider = { ...normalizedProvider, apiKey };
-        }
       }
-    }
-
-    if (normalizedKey === "google") {
-      const googleNormalized = normalizeGoogleProvider(normalizedProvider);
-      if (googleNormalized !== normalizedProvider) {
-        mutated = true;
-      }
-      normalizedProvider = googleNormalized;
     }
 
     next[key] = normalizedProvider;
   }
 
   return mutated ? next : providers;
-}
-
-function buildMinimaxProvider(): ProviderConfig {
-  return {
-    baseUrl: MINIMAX_PORTAL_BASE_URL,
-    api: "anthropic-messages",
-    models: [
-      buildMinimaxTextModel({
-        id: MINIMAX_DEFAULT_MODEL_ID,
-        name: "MiniMax M2.1",
-        reasoning: false,
-      }),
-      buildMinimaxTextModel({
-        id: "MiniMax-M2.1-lightning",
-        name: "MiniMax M2.1 Lightning",
-        reasoning: false,
-      }),
-      buildMinimaxModel({
-        id: MINIMAX_DEFAULT_VISION_MODEL_ID,
-        name: "MiniMax VL 01",
-        reasoning: false,
-        input: ["text", "image"],
-      }),
-      buildMinimaxTextModel({
-        id: "MiniMax-M2.5",
-        name: "MiniMax M2.5",
-        reasoning: true,
-      }),
-      buildMinimaxTextModel({
-        id: "MiniMax-M2.5-Lightning",
-        name: "MiniMax M2.5 Lightning",
-        reasoning: true,
-      }),
-    ],
-  };
-}
-
-function buildMinimaxPortalProvider(): ProviderConfig {
-  return {
-    baseUrl: MINIMAX_PORTAL_BASE_URL,
-    api: "anthropic-messages",
-    models: [
-      buildMinimaxTextModel({
-        id: MINIMAX_DEFAULT_MODEL_ID,
-        name: "MiniMax M2.1",
-        reasoning: false,
-      }),
-      buildMinimaxTextModel({
-        id: "MiniMax-M2.5",
-        name: "MiniMax M2.5",
-        reasoning: true,
-      }),
-    ],
-  };
 }
 
 function buildMoonshotProvider(): ProviderConfig {
@@ -506,24 +332,6 @@ function buildMoonshotProvider(): ProviderConfig {
         cost: MOONSHOT_DEFAULT_COST,
         contextWindow: MOONSHOT_DEFAULT_CONTEXT_WINDOW,
         maxTokens: MOONSHOT_DEFAULT_MAX_TOKENS,
-      },
-    ],
-  };
-}
-
-export function buildKimiCodingProvider(): ProviderConfig {
-  return {
-    baseUrl: KIMI_CODING_BASE_URL,
-    api: "anthropic-messages",
-    models: [
-      {
-        id: KIMI_CODING_DEFAULT_MODEL_ID,
-        name: "Kimi for Coding",
-        reasoning: true,
-        input: ["text", "image"],
-        cost: KIMI_CODING_DEFAULT_COST,
-        contextWindow: KIMI_CODING_DEFAULT_CONTEXT_WINDOW,
-        maxTokens: KIMI_CODING_DEFAULT_MAX_TOKENS,
       },
     ],
   };
@@ -556,14 +364,6 @@ function buildQwenPortalProvider(): ProviderConfig {
   };
 }
 
-function buildSyntheticProvider(): ProviderConfig {
-  return {
-    baseUrl: SYNTHETIC_BASE_URL,
-    api: "anthropic-messages",
-    models: SYNTHETIC_MODEL_CATALOG.map(buildSyntheticModelDefinition),
-  };
-}
-
 function buildDoubaoProvider(): ProviderConfig {
   return {
     baseUrl: DOUBAO_BASE_URL,
@@ -593,24 +393,6 @@ function buildBytePlusCodingProvider(): ProviderConfig {
     baseUrl: BYTEPLUS_CODING_BASE_URL,
     api: "openai-completions",
     models: BYTEPLUS_CODING_MODEL_CATALOG.map(buildBytePlusModelDefinition),
-  };
-}
-
-export function buildXiaomiProvider(): ProviderConfig {
-  return {
-    baseUrl: XIAOMI_BASE_URL,
-    api: "anthropic-messages",
-    models: [
-      {
-        id: XIAOMI_DEFAULT_MODEL_ID,
-        name: "Xiaomi MiMo V2 Flash",
-        reasoning: false,
-        input: ["text"],
-        cost: XIAOMI_DEFAULT_COST,
-        contextWindow: XIAOMI_DEFAULT_CONTEXT_WINDOW,
-        maxTokens: XIAOMI_DEFAULT_MAX_TOKENS,
-      },
-    ],
   };
 }
 
@@ -743,40 +525,11 @@ export async function resolveImplicitProviders(params: {
     allowKeychainPrompt: false,
   });
 
-  const minimaxKey =
-    resolveEnvApiKeyVarName("minimax") ??
-    resolveApiKeyFromProfiles({ provider: "minimax", store: authStore });
-  if (minimaxKey) {
-    providers.minimax = { ...buildMinimaxProvider(), apiKey: minimaxKey };
-  }
-
-  const minimaxOauthProfile = listProfilesForProvider(authStore, "minimax-portal");
-  if (minimaxOauthProfile.length > 0) {
-    providers["minimax-portal"] = {
-      ...buildMinimaxPortalProvider(),
-      apiKey: MINIMAX_OAUTH_PLACEHOLDER,
-    };
-  }
-
   const moonshotKey =
     resolveEnvApiKeyVarName("moonshot") ??
     resolveApiKeyFromProfiles({ provider: "moonshot", store: authStore });
   if (moonshotKey) {
     providers.moonshot = { ...buildMoonshotProvider(), apiKey: moonshotKey };
-  }
-
-  const kimiCodingKey =
-    resolveEnvApiKeyVarName("kimi-coding") ??
-    resolveApiKeyFromProfiles({ provider: "kimi-coding", store: authStore });
-  if (kimiCodingKey) {
-    providers["kimi-coding"] = { ...buildKimiCodingProvider(), apiKey: kimiCodingKey };
-  }
-
-  const syntheticKey =
-    resolveEnvApiKeyVarName("synthetic") ??
-    resolveApiKeyFromProfiles({ provider: "synthetic", store: authStore });
-  if (syntheticKey) {
-    providers.synthetic = { ...buildSyntheticProvider(), apiKey: syntheticKey };
   }
 
   const veniceKey =
@@ -814,41 +567,6 @@ export async function resolveImplicitProviders(params: {
       ...buildBytePlusCodingProvider(),
       apiKey: byteplusKey,
     };
-  }
-
-  const xiaomiKey =
-    resolveEnvApiKeyVarName("xiaomi") ??
-    resolveApiKeyFromProfiles({ provider: "xiaomi", store: authStore });
-  if (xiaomiKey) {
-    providers.xiaomi = { ...buildXiaomiProvider(), apiKey: xiaomiKey };
-  }
-
-  const cloudflareProfiles = listProfilesForProvider(authStore, "cloudflare-ai-gateway");
-  for (const profileId of cloudflareProfiles) {
-    const cred = authStore.profiles[profileId];
-    if (cred?.type !== "api_key") {
-      continue;
-    }
-    const accountId = cred.metadata?.accountId?.trim();
-    const gatewayId = cred.metadata?.gatewayId?.trim();
-    if (!accountId || !gatewayId) {
-      continue;
-    }
-    const baseUrl = resolveCloudflareAiGatewayBaseUrl({ accountId, gatewayId });
-    if (!baseUrl) {
-      continue;
-    }
-    const apiKey = resolveEnvApiKeyVarName("cloudflare-ai-gateway") ?? cred.key?.trim() ?? "";
-    if (!apiKey) {
-      continue;
-    }
-    providers["cloudflare-ai-gateway"] = {
-      baseUrl,
-      api: "anthropic-messages",
-      apiKey,
-      models: [buildCloudflareAiGatewayModelDefinition()],
-    };
-    break;
   }
 
   // Ollama provider - only add if explicitly configured.
@@ -915,98 +633,4 @@ export async function resolveImplicitProviders(params: {
   }
 
   return providers;
-}
-
-export async function resolveImplicitCopilotProvider(params: {
-  agentDir: string;
-  env?: NodeJS.ProcessEnv;
-}): Promise<ProviderConfig | null> {
-  const env = params.env ?? process.env;
-  const authStore = ensureAuthProfileStore(params.agentDir, {
-    allowKeychainPrompt: false,
-  });
-  const hasProfile = listProfilesForProvider(authStore, "github-copilot").length > 0;
-  const envToken = env.COPILOT_GITHUB_TOKEN ?? env.GH_TOKEN ?? env.GITHUB_TOKEN;
-  const githubToken = (envToken ?? "").trim();
-
-  if (!hasProfile && !githubToken) {
-    return null;
-  }
-
-  let selectedGithubToken = githubToken;
-  if (!selectedGithubToken && hasProfile) {
-    // Use the first available profile as a default for discovery (it will be
-    // re-resolved per-run by the embedded runner).
-    const profileId = listProfilesForProvider(authStore, "github-copilot")[0];
-    const profile = profileId ? authStore.profiles[profileId] : undefined;
-    if (profile && profile.type === "token") {
-      selectedGithubToken = profile.token;
-    }
-  }
-
-  let baseUrl = DEFAULT_COPILOT_API_BASE_URL;
-  if (selectedGithubToken) {
-    try {
-      const token = await resolveCopilotApiToken({
-        githubToken: selectedGithubToken,
-        env,
-      });
-      baseUrl = token.baseUrl;
-    } catch {
-      baseUrl = DEFAULT_COPILOT_API_BASE_URL;
-    }
-  }
-
-  // pi-coding-agent's ModelRegistry marks a model "available" only if its
-  // `AuthStorage` has auth configured for that provider (via auth.json/env/etc).
-  // Our Copilot auth lives in OpenClaw's auth-profiles store instead, so we also
-  // write a runtime-only auth.json entry for pi-coding-agent to pick up.
-  //
-  // This is safe because it's (1) within OpenClaw's agent dir, (2) contains the
-  // GitHub token (not the exchanged Copilot token), and (3) matches existing
-  // patterns for OAuth-like providers in pi-coding-agent.
-  // Note: we deliberately do not write pi-coding-agent's `auth.json` here.
-  // OpenClaw uses its own auth store and exchanges tokens at runtime.
-  // `models list` uses OpenClaw's auth heuristics for availability.
-
-  // We intentionally do NOT define custom models for Copilot in models.json.
-  // pi-coding-agent treats providers with models as replacements requiring apiKey.
-  // We only override baseUrl; the model list comes from pi-ai built-ins.
-  return {
-    baseUrl,
-    models: [],
-  } satisfies ProviderConfig;
-}
-
-export async function resolveImplicitBedrockProvider(params: {
-  agentDir: string;
-  config?: OpenClawConfig;
-  env?: NodeJS.ProcessEnv;
-}): Promise<ProviderConfig | null> {
-  const env = params.env ?? process.env;
-  const discoveryConfig = params.config?.models?.bedrockDiscovery;
-  const enabled = discoveryConfig?.enabled;
-  const hasAwsCreds = resolveAwsSdkEnvVarName(env) !== undefined;
-  if (enabled === false) {
-    return null;
-  }
-  if (enabled !== true && !hasAwsCreds) {
-    return null;
-  }
-
-  const region = discoveryConfig?.region ?? env.AWS_REGION ?? env.AWS_DEFAULT_REGION ?? "us-east-1";
-  const models = await discoverBedrockModels({
-    region,
-    config: discoveryConfig,
-  });
-  if (models.length === 0) {
-    return null;
-  }
-
-  return {
-    baseUrl: `https://bedrock-runtime.${region}.amazonaws.com`,
-    api: "bedrock-converse-stream",
-    auth: "aws-sdk",
-    models,
-  } satisfies ProviderConfig;
 }

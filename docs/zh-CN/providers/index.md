@@ -42,17 +42,13 @@ Venice 是我们推荐的 Venice AI 设置，用于隐私优先的推理，并�
 ## 提供商文档
 
 - [OpenAI（API + Codex）](/providers/openai)
-- [Anthropic（API + Claude Code CLI）](/providers/anthropic)
 - [Qwen（OAuth）](/providers/qwen)
 - [OpenRouter](/providers/openrouter)
 - [Vercel AI Gateway](/providers/vercel-ai-gateway)
-- [Moonshot AI（Kimi + Kimi Coding）](/providers/moonshot)
+- [Moonshot AI（Kimi）](/providers/moonshot)
 - [OpenCode Zen](/providers/opencode)
-- [Amazon Bedrock](/providers/bedrock)
 - [Z.AI](/providers/zai)
-- [Xiaomi](/providers/xiaomi)
 - [GLM 模型](/providers/glm)
-- [MiniMax](/providers/minimax)
 - [Venice（Venice AI，注重隐私）](/providers/venice)
 - [Ollama（本地模型）](/providers/ollama)
 

@@ -11,7 +11,6 @@ const log = createSubsystemLogger("agents/auth-profiles");
 
 const CODEX_CLI_AUTH_FILENAME = "auth.json";
 const QWEN_CLI_CREDENTIALS_RELATIVE_PATH = ".qwen/oauth_creds.json";
-const MINIMAX_CLI_CREDENTIALS_RELATIVE_PATH = ".minimax/oauth_creds.json";
 
 type CachedValue<T> = {
   value: T | null;
@@ -21,12 +20,10 @@ type CachedValue<T> = {
 
 let codexCliCache: CachedValue<CodexCliCredential> | null = null;
 let qwenCliCache: CachedValue<QwenCliCredential> | null = null;
-let minimaxCliCache: CachedValue<MiniMaxCliCredential> | null = null;
 
 export function resetCliCredentialCachesForTest(): void {
   codexCliCache = null;
   qwenCliCache = null;
-  minimaxCliCache = null;
 }
 
 export type CodexCliCredential = {
@@ -41,14 +38,6 @@ export type CodexCliCredential = {
 export type QwenCliCredential = {
   type: "oauth";
   provider: "qwen-portal";
-  access: string;
-  refresh: string;
-  expires: number;
-};
-
-export type MiniMaxCliCredential = {
-  type: "oauth";
-  provider: "minimax-portal";
   access: string;
   refresh: string;
   expires: number;
@@ -73,11 +62,6 @@ function resolveCodexHomePath() {
 function resolveQwenCliCredentialsPath(homeDir?: string) {
   const baseDir = homeDir ?? resolveUserPath("~");
   return path.join(baseDir, QWEN_CLI_CREDENTIALS_RELATIVE_PATH);
-}
-
-function resolveMiniMaxCliCredentialsPath(homeDir?: string) {
-  const baseDir = homeDir ?? resolveUserPath("~");
-  return path.join(baseDir, MINIMAX_CLI_CREDENTIALS_RELATIVE_PATH);
 }
 
 function computeCodexKeychainAccount(codexHome: string) {
@@ -185,11 +169,6 @@ function readPortalCliOauthCredentials<TProvider extends string>(
   };
 }
 
-function readMiniMaxCliCredentials(options?: { homeDir?: string }): MiniMaxCliCredential | null {
-  const credPath = resolveMiniMaxCliCredentialsPath(options?.homeDir);
-  return readPortalCliOauthCredentials(credPath, "minimax-portal");
-}
-
 export function readCodexCliCredentials(options?: {
   platform?: NodeJS.Platform;
   execSync?: ExecSyncFn;
@@ -286,28 +265,6 @@ export function readQwenCliCredentialsCached(options?: {
   const value = readQwenCliCredentials({ homeDir: options?.homeDir });
   if (ttlMs > 0) {
     qwenCliCache = { value, readAt: now, cacheKey };
-  }
-  return value;
-}
-
-export function readMiniMaxCliCredentialsCached(options?: {
-  ttlMs?: number;
-  homeDir?: string;
-}): MiniMaxCliCredential | null {
-  const ttlMs = options?.ttlMs ?? 0;
-  const now = Date.now();
-  const cacheKey = resolveMiniMaxCliCredentialsPath(options?.homeDir);
-  if (
-    ttlMs > 0 &&
-    minimaxCliCache &&
-    minimaxCliCache.cacheKey === cacheKey &&
-    now - minimaxCliCache.readAt < ttlMs
-  ) {
-    return minimaxCliCache.value;
-  }
-  const value = readMiniMaxCliCredentials({ homeDir: options?.homeDir });
-  if (ttlMs > 0) {
-    minimaxCliCache = { value, readAt: now, cacheKey };
   }
   return value;
 }

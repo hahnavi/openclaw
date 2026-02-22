@@ -6,7 +6,6 @@ import { resolveUserPath } from "../../utils.js";
 import { getDefaultLocalRoots, loadWebMedia } from "../../web/media.js";
 import { ensureAuthProfileStore, listProfilesForProvider } from "../auth-profiles.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
-import { minimaxUnderstandImage } from "../minimax-vlm.js";
 import { getApiKeyForModel, requireApiKey, resolveEnvApiKey } from "../model-auth.js";
 import { runWithImageModelFallback } from "../model-fallback.js";
 import { resolveConfiguredModelRef } from "../model-selection.js";
@@ -124,10 +123,7 @@ export function resolveImageModelConfigForTool(params: {
 
   let preferred: string | null = null;
 
-  // MiniMax users: always try the canonical vision model first when auth exists.
-  if (primary.provider === "minimax" && providerOk) {
-    preferred = "minimax/MiniMax-VL-01";
-  } else if (providerOk && providerVisionFromConfig) {
+  if (providerOk && providerVisionFromConfig) {
     preferred = providerVisionFromConfig;
   } else if (primary.provider === "zai" && providerOk) {
     preferred = "zai/glm-4.6v";
@@ -291,19 +287,6 @@ async function runImagePrompt(params: {
       });
       const apiKey = requireApiKey(apiKeyInfo, model.provider);
       authStorage.setRuntimeApiKey(model.provider, apiKey);
-
-      // MiniMax VLM only supports a single image; use the first one.
-      if (model.provider === "minimax") {
-        const first = params.images[0];
-        const imageDataUrl = `data:${first.mimeType};base64,${first.base64}`;
-        const text = await minimaxUnderstandImage({
-          apiKey,
-          prompt: params.prompt,
-          imageDataUrl,
-          modelBaseUrl: model.baseUrl,
-        });
-        return { text, provider: model.provider, model: model.id };
-      }
 
       const context = buildImageContext(params.prompt, params.images);
       const message = await complete(model, context, {

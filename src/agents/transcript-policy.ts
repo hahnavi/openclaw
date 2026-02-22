@@ -1,5 +1,4 @@
 import { normalizeProviderId } from "./model-selection.js";
-import { isAntigravityClaude, isGoogleModelApi } from "./pi-embedded-helpers/google.js";
 import type { ToolCallIdMode } from "./tool-call-id.js";
 
 export type TranscriptSanitizeMode = "full" | "images-only";
@@ -81,18 +80,12 @@ export function resolveTranscriptPolicy(params: {
 }): TranscriptPolicy {
   const provider = normalizeProviderId(params.provider ?? "");
   const modelId = params.modelId ?? "";
-  const isGoogle = isGoogleModelApi(params.modelApi);
   const isAnthropic = isAnthropicApi(params.modelApi, provider);
   const isOpenAi = isOpenAiProvider(provider) || (!provider && isOpenAiApi(params.modelApi));
   const isMistral = isMistralModel({ provider, modelId });
   const isOpenRouterGemini =
     (provider === "openrouter" || provider === "opencode") &&
     modelId.toLowerCase().includes("gemini");
-  const isAntigravityClaudeModel = isAntigravityClaude({
-    api: params.modelApi,
-    provider,
-    modelId,
-  });
 
   const isCopilotClaude = provider === "github-copilot" && modelId.toLowerCase().includes("claude");
 
@@ -101,32 +94,31 @@ export function resolveTranscriptPolicy(params: {
   // Drop these blocks at send-time to keep sessions usable.
   const dropThinkingBlocks = isCopilotClaude;
 
-  const needsNonImageSanitize = isGoogle || isAnthropic || isMistral || isOpenRouterGemini;
+  const needsNonImageSanitize = isAnthropic || isMistral || isOpenRouterGemini;
 
-  const sanitizeToolCallIds = isGoogle || isMistral || isAnthropic;
+  const sanitizeToolCallIds = isMistral || isAnthropic;
   const toolCallIdMode: ToolCallIdMode | undefined = isMistral
     ? "strict9"
     : sanitizeToolCallIds
       ? "strict"
       : undefined;
-  const repairToolUseResultPairing = isGoogle || isAnthropic;
+  const repairToolUseResultPairing = isAnthropic;
   const sanitizeThoughtSignatures = isOpenRouterGemini
     ? { allowBase64Only: true, includeCamelCase: true }
     : undefined;
-  const sanitizeThinkingSignatures = isAntigravityClaudeModel;
 
   return {
     sanitizeMode: isOpenAi ? "images-only" : needsNonImageSanitize ? "full" : "images-only",
     sanitizeToolCallIds: !isOpenAi && sanitizeToolCallIds,
     toolCallIdMode,
     repairToolUseResultPairing: !isOpenAi && repairToolUseResultPairing,
-    preserveSignatures: isAntigravityClaudeModel,
+    preserveSignatures: false,
     sanitizeThoughtSignatures: isOpenAi ? undefined : sanitizeThoughtSignatures,
-    sanitizeThinkingSignatures,
+    sanitizeThinkingSignatures: false,
     dropThinkingBlocks,
-    applyGoogleTurnOrdering: !isOpenAi && isGoogle,
-    validateGeminiTurns: !isOpenAi && isGoogle,
+    applyGoogleTurnOrdering: false,
+    validateGeminiTurns: false,
     validateAnthropicTurns: !isOpenAi && isAnthropic,
-    allowSyntheticToolResults: !isOpenAi && (isGoogle || isAnthropic),
+    allowSyntheticToolResults: !isOpenAi && isAnthropic,
   };
 }

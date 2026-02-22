@@ -47,22 +47,10 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["vllm"],
   },
   {
-    value: "minimax",
-    label: "MiniMax",
-    hint: "M2.5 (recommended)",
-    choices: ["minimax-portal", "minimax-api", "minimax-api-key-cn", "minimax-api-lightning"],
-  },
-  {
     value: "moonshot",
     label: "Moonshot AI (Kimi K2.5)",
-    hint: "Kimi K2.5 + Kimi Coding",
-    choices: ["moonshot-api-key", "moonshot-api-key-cn", "kimi-code-api-key"],
-  },
-  {
-    value: "google",
-    label: "Google",
-    hint: "Gemini API key + OAuth",
-    choices: ["gemini-api-key", "google-antigravity", "google-gemini-cli"],
+    hint: "Kimi K2.5",
+    choices: ["moonshot-api-key", "moonshot-api-key-cn"],
   },
   {
     value: "xai",
@@ -107,12 +95,6 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["qianfan-api-key"],
   },
   {
-    value: "copilot",
-    label: "Copilot",
-    hint: "GitHub + local proxy",
-    choices: ["github-copilot", "copilot-proxy"],
-  },
-  {
     value: "ai-gateway",
     label: "Vercel AI Gateway",
     hint: "API key",
@@ -123,18 +105,6 @@ const AUTH_CHOICE_GROUP_DEFS: {
     label: "OpenCode Zen",
     hint: "API key",
     choices: ["opencode-zen"],
-  },
-  {
-    value: "xiaomi",
-    label: "Xiaomi",
-    hint: "API key",
-    choices: ["xiaomi-api-key"],
-  },
-  {
-    value: "synthetic",
-    label: "Synthetic",
-    hint: "Anthropic-compatible (multi-model)",
-    choices: ["synthetic-api-key"],
   },
   {
     value: "together",
@@ -161,15 +131,9 @@ const AUTH_CHOICE_GROUP_DEFS: {
     choices: ["litellm-api-key"],
   },
   {
-    value: "cloudflare-ai-gateway",
-    label: "Cloudflare AI Gateway",
-    hint: "Account ID + Gateway ID + API key",
-    choices: ["cloudflare-ai-gateway-api-key"],
-  },
-  {
     value: "custom",
     label: "Custom Provider",
-    hint: "Any OpenAI or Anthropic compatible endpoint",
+    hint: "Any OpenAI-compatible endpoint",
     choices: ["custom-api-key"],
   },
 ];
@@ -209,11 +173,6 @@ const BASE_AUTH_CHOICE_OPTIONS: ReadonlyArray<AuthChoiceOption> = [
     label: "Vercel AI Gateway API key",
   },
   {
-    value: "cloudflare-ai-gateway-api-key",
-    label: "Cloudflare AI Gateway",
-    hint: "Account ID + Gateway ID + API key",
-  },
-  {
     value: "moonshot-api-key",
     label: "Kimi API key (.ai)",
   },
@@ -221,11 +180,6 @@ const BASE_AUTH_CHOICE_OPTIONS: ReadonlyArray<AuthChoiceOption> = [
     value: "moonshot-api-key-cn",
     label: "Kimi API key (.cn)",
   },
-  {
-    value: "kimi-code-api-key",
-    label: "Kimi Code API key (subscription)",
-  },
-  { value: "synthetic-api-key", label: "Synthetic API key" },
   {
     value: "venice-api-key",
     label: "Venice AI API key",
@@ -240,22 +194,6 @@ const BASE_AUTH_CHOICE_OPTIONS: ReadonlyArray<AuthChoiceOption> = [
     value: "huggingface-api-key",
     label: "Hugging Face API key (HF token)",
     hint: "Inference Providers — OpenAI-compatible chat",
-  },
-  {
-    value: "github-copilot",
-    label: "GitHub Copilot (GitHub device login)",
-    hint: "Uses GitHub device flow",
-  },
-  { value: "gemini-api-key", label: "Google Gemini API key" },
-  {
-    value: "google-antigravity",
-    label: "Google Antigravity OAuth",
-    hint: "Uses the bundled Antigravity auth plugin",
-  },
-  {
-    value: "google-gemini-cli",
-    label: "Google Gemini CLI OAuth",
-    hint: "Uses the bundled Gemini CLI auth plugin",
   },
   { value: "zai-api-key", label: "Z.AI API key" },
   {
@@ -278,37 +216,12 @@ const BASE_AUTH_CHOICE_OPTIONS: ReadonlyArray<AuthChoiceOption> = [
     label: "CN",
     hint: "Z.AI CN (open.bigmodel.cn)",
   },
-  {
-    value: "xiaomi-api-key",
-    label: "Xiaomi API key",
-  },
-  {
-    value: "minimax-portal",
-    label: "MiniMax OAuth",
-    hint: "Oauth plugin for MiniMax",
-  },
   { value: "qwen-portal", label: "Qwen OAuth" },
-  {
-    value: "copilot-proxy",
-    label: "Copilot Proxy (local)",
-    hint: "Local proxy for VS Code Copilot models",
-  },
   { value: "apiKey", label: "Anthropic API key" },
   {
     value: "opencode-zen",
     label: "OpenCode Zen (multi-model proxy)",
     hint: "Claude, GPT, Gemini via opencode.ai/zen",
-  },
-  { value: "minimax-api", label: "MiniMax M2.5" },
-  {
-    value: "minimax-api-key-cn",
-    label: "MiniMax M2.5 (CN)",
-    hint: "China endpoint (api.minimaxi.com)",
-  },
-  {
-    value: "minimax-api-lightning",
-    label: "MiniMax M2.5 Lightning",
-    hint: "Faster, higher output cost",
   },
   { value: "custom-api-key", label: "Custom Provider" },
 ];

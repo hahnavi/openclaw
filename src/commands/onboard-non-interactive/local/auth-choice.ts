@@ -7,46 +7,31 @@ import type { RuntimeEnv } from "../../../runtime.js";
 import { shortenHomePath } from "../../../utils.js";
 import { normalizeSecretInput } from "../../../utils/normalize-secret-input.js";
 import { buildTokenProfileId } from "../../auth-token.js";
-import { applyGoogleGeminiModelDefault } from "../../google-gemini-model-default.js";
 import { applyPrimaryModel } from "../../model-picker.js";
 import {
   applyAuthProfileConfig,
-  applyCloudflareAiGatewayConfig,
   applyQianfanConfig,
-  applyKimiCodeConfig,
-  applyMinimaxApiConfig,
-  applyMinimaxApiConfigCn,
-  applyMinimaxConfig,
   applyMoonshotConfig,
   applyMoonshotConfigCn,
   applyOpencodeZenConfig,
   applyOpenrouterConfig,
-  applySyntheticConfig,
   applyVeniceConfig,
   applyTogetherConfig,
   applyHuggingfaceConfig,
   applyVercelAiGatewayConfig,
   applyLitellmConfig,
   applyXaiConfig,
-  applyXiaomiConfig,
   applyZaiConfig,
-  setAnthropicApiKey,
-  setCloudflareAiGatewayConfig,
   setQianfanApiKey,
-  setGeminiApiKey,
-  setKimiCodingApiKey,
   setLitellmApiKey,
-  setMinimaxApiKey,
   setMoonshotApiKey,
   setOpencodeZenApiKey,
   setOpenrouterApiKey,
-  setSyntheticApiKey,
   setXaiApiKey,
   setVeniceApiKey,
   setTogetherApiKey,
   setHuggingfaceApiKey,
   setVercelAiGatewayApiKey,
-  setXiaomiApiKey,
   setZaiApiKey,
 } from "../../onboard-auth.js";
 import {

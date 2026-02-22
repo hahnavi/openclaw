@@ -2,11 +2,7 @@ import type { Api, Model } from "@mariozechner/pi-ai";
 import { resolveOpenClawAgentDir } from "../../agents/agent-paths.js";
 import type { AuthProfileStore } from "../../agents/auth-profiles.js";
 import { listProfilesForProvider } from "../../agents/auth-profiles.js";
-import {
-  getCustomProviderApiKey,
-  resolveAwsSdkEnvVarName,
-  resolveEnvApiKey,
-} from "../../agents/model-auth.js";
+import { getCustomProviderApiKey, resolveEnvApiKey } from "../../agents/model-auth.js";
 import {
   ANTIGRAVITY_OPUS_46_FORWARD_COMPAT_CANDIDATES,
   resolveForwardCompatModel,
@@ -33,9 +29,6 @@ const hasAuthForProvider = (
     return false;
   }
   if (listProfilesForProvider(authStore, provider).length > 0) {
-    return true;
-  }
-  if (provider === "amazon-bedrock" && resolveAwsSdkEnvVarName()) {
     return true;
   }
   if (resolveEnvApiKey(provider)) {

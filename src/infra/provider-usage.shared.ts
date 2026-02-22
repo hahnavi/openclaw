@@ -4,26 +4,11 @@ import type { UsageProviderId } from "./provider-usage.types.js";
 export const DEFAULT_TIMEOUT_MS = 5000;
 
 export const PROVIDER_LABELS: Record<UsageProviderId, string> = {
-  anthropic: "Claude",
-  "github-copilot": "Copilot",
-  "google-gemini-cli": "Gemini",
-  "google-antigravity": "Antigravity",
-  minimax: "MiniMax",
   "openai-codex": "Codex",
-  xiaomi: "Xiaomi",
   zai: "z.ai",
 };
 
-export const usageProviders: UsageProviderId[] = [
-  "anthropic",
-  "github-copilot",
-  "google-gemini-cli",
-  "google-antigravity",
-  "minimax",
-  "openai-codex",
-  "xiaomi",
-  "zai",
-];
+export const usageProviders: UsageProviderId[] = ["openai-codex", "zai"];
 
 export function resolveUsageProviderId(provider?: string | null): UsageProviderId | undefined {
   if (!provider) {

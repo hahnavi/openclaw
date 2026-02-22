@@ -4,18 +4,9 @@ import {
   HUGGINGFACE_MODEL_CATALOG,
 } from "../agents/huggingface-models.js";
 import {
-  buildKimiCodingProvider,
   buildQianfanProvider,
-  buildXiaomiProvider,
   QIANFAN_DEFAULT_MODEL_ID,
-  XIAOMI_DEFAULT_MODEL_ID,
 } from "../agents/models-config.providers.js";
-import {
-  buildSyntheticModelDefinition,
-  SYNTHETIC_BASE_URL,
-  SYNTHETIC_DEFAULT_MODEL_REF,
-  SYNTHETIC_MODEL_CATALOG,
-} from "../agents/synthetic-models.js";
 import {
   buildTogetherModelDefinition,
   TOGETHER_BASE_URL,
@@ -33,13 +24,10 @@ import {
   HUGGINGFACE_DEFAULT_MODEL_REF,
   OPENROUTER_DEFAULT_MODEL_REF,
   TOGETHER_DEFAULT_MODEL_REF,
-  XIAOMI_DEFAULT_MODEL_REF,
   ZAI_DEFAULT_MODEL_REF,
   XAI_DEFAULT_MODEL_REF,
 } from "./onboard-auth.credentials.js";
 export {
-  applyCloudflareAiGatewayConfig,
-  applyCloudflareAiGatewayProviderConfig,
   applyVercelAiGatewayConfig,
   applyVercelAiGatewayProviderConfig,
 } from "./onboard-auth.config-gateways.js";
@@ -62,8 +50,6 @@ import {
   buildXaiModelDefinition,
   QIANFAN_BASE_URL,
   QIANFAN_DEFAULT_MODEL_REF,
-  KIMI_CODING_MODEL_ID,
-  KIMI_CODING_MODEL_REF,
   MOONSHOT_BASE_URL,
   MOONSHOT_CN_BASE_URL,
   MOONSHOT_DEFAULT_MODEL_ID,
@@ -202,92 +188,6 @@ export function applyMoonshotConfig(cfg: OpenClawConfig): OpenClawConfig {
 export function applyMoonshotConfigCn(cfg: OpenClawConfig): OpenClawConfig {
   const next = applyMoonshotProviderConfigCn(cfg);
   return applyAgentDefaultModelPrimary(next, MOONSHOT_DEFAULT_MODEL_REF);
-}
-
-export function applyKimiCodeProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
-  const models = { ...cfg.agents?.defaults?.models };
-  models[KIMI_CODING_MODEL_REF] = {
-    ...models[KIMI_CODING_MODEL_REF],
-    alias: models[KIMI_CODING_MODEL_REF]?.alias ?? "Kimi for Coding",
-  };
-
-  const defaultModel = buildKimiCodingProvider().models[0];
-
-  return applyProviderConfigWithDefaultModel(cfg, {
-    agentModels: models,
-    providerId: "kimi-coding",
-    api: "anthropic-messages",
-    baseUrl: "https://api.kimi.com/coding/",
-    defaultModel,
-    defaultModelId: KIMI_CODING_MODEL_ID,
-  });
-}
-
-export function applyKimiCodeConfig(cfg: OpenClawConfig): OpenClawConfig {
-  const next = applyKimiCodeProviderConfig(cfg);
-  return applyAgentDefaultModelPrimary(next, KIMI_CODING_MODEL_REF);
-}
-
-export function applySyntheticProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
-  const models = { ...cfg.agents?.defaults?.models };
-  models[SYNTHETIC_DEFAULT_MODEL_REF] = {
-    ...models[SYNTHETIC_DEFAULT_MODEL_REF],
-    alias: models[SYNTHETIC_DEFAULT_MODEL_REF]?.alias ?? "MiniMax M2.1",
-  };
-
-  const providers = { ...cfg.models?.providers };
-  const existingProvider = providers.synthetic;
-  const existingModels = Array.isArray(existingProvider?.models) ? existingProvider.models : [];
-  const syntheticModels = SYNTHETIC_MODEL_CATALOG.map(buildSyntheticModelDefinition);
-  const mergedModels = [
-    ...existingModels,
-    ...syntheticModels.filter(
-      (model) => !existingModels.some((existing) => existing.id === model.id),
-    ),
-  ];
-  const { apiKey: existingApiKey, ...existingProviderRest } = (existingProvider ?? {}) as Record<
-    string,
-    unknown
-  > as { apiKey?: string };
-  const resolvedApiKey = typeof existingApiKey === "string" ? existingApiKey : undefined;
-  const normalizedApiKey = resolvedApiKey?.trim();
-  providers.synthetic = {
-    ...existingProviderRest,
-    baseUrl: SYNTHETIC_BASE_URL,
-    api: "anthropic-messages",
-    ...(normalizedApiKey ? { apiKey: normalizedApiKey } : {}),
-    models: mergedModels.length > 0 ? mergedModels : syntheticModels,
-  };
-
-  return applyOnboardAuthAgentModelsAndProviders(cfg, { agentModels: models, providers });
-}
-
-export function applySyntheticConfig(cfg: OpenClawConfig): OpenClawConfig {
-  const next = applySyntheticProviderConfig(cfg);
-  return applyAgentDefaultModelPrimary(next, SYNTHETIC_DEFAULT_MODEL_REF);
-}
-
-export function applyXiaomiProviderConfig(cfg: OpenClawConfig): OpenClawConfig {
-  const models = { ...cfg.agents?.defaults?.models };
-  models[XIAOMI_DEFAULT_MODEL_REF] = {
-    ...models[XIAOMI_DEFAULT_MODEL_REF],
-    alias: models[XIAOMI_DEFAULT_MODEL_REF]?.alias ?? "Xiaomi",
-  };
-  const defaultProvider = buildXiaomiProvider();
-  const resolvedApi = defaultProvider.api ?? "openai-completions";
-  return applyProviderConfigWithDefaultModels(cfg, {
-    agentModels: models,
-    providerId: "xiaomi",
-    api: resolvedApi,
-    baseUrl: defaultProvider.baseUrl,
-    defaultModels: defaultProvider.models ?? [],
-    defaultModelId: XIAOMI_DEFAULT_MODEL_ID,
-  });
-}
-
-export function applyXiaomiConfig(cfg: OpenClawConfig): OpenClawConfig {
-  const next = applyXiaomiProviderConfig(cfg);
-  return applyAgentDefaultModelPrimary(next, XIAOMI_DEFAULT_MODEL_REF);
 }
 
 /**

@@ -3,7 +3,6 @@ import { createSubsystemLogger } from "../logging/subsystem.js";
 import { resolveAgentConfig, resolveAgentModelPrimary } from "./agent-scope.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "./defaults.js";
 import type { ModelCatalogEntry } from "./model-catalog.js";
-import { normalizeGoogleModelId } from "./models-config.providers.js";
 
 const log = createSubsystemLogger("model-selection");
 
@@ -39,9 +38,6 @@ export function normalizeProviderId(provider: string): string {
   }
   if (normalized === "qwen") {
     return "qwen-portal";
-  }
-  if (normalized === "kimi-code") {
-    return "kimi-coding";
   }
   // Backward compatibility for older provider naming.
   if (normalized === "bytedance" || normalized === "doubao") {
@@ -87,9 +83,6 @@ export function isCliProvider(provider: string, cfg?: OpenClawConfig): boolean {
 }
 
 function normalizeProviderModelId(provider: string, model: string): string {
-  if (provider === "google") {
-    return normalizeGoogleModelId(model);
-  }
   return model;
 }
 

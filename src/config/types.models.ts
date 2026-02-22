@@ -1,11 +1,4 @@
-export type ModelApi =
-  | "openai-completions"
-  | "openai-responses"
-  | "anthropic-messages"
-  | "google-generative-ai"
-  | "github-copilot"
-  | "bedrock-converse-stream"
-  | "ollama";
+export type ModelApi = "openai-completions" | "openai-responses" | "ollama";
 
 export type ModelCompatConfig = {
   supportsStore?: boolean;
@@ -21,7 +14,7 @@ export type ModelCompatConfig = {
   requiresMistralToolIds?: boolean;
 };
 
-export type ModelProviderAuthMode = "api-key" | "aws-sdk" | "oauth" | "token";
+export type ModelProviderAuthMode = "api-key" | "oauth" | "token";
 
 export type ModelDefinitionConfig = {
   id: string;
@@ -51,17 +44,7 @@ export type ModelProviderConfig = {
   models: ModelDefinitionConfig[];
 };
 
-export type BedrockDiscoveryConfig = {
-  enabled?: boolean;
-  region?: string;
-  providerFilter?: string[];
-  refreshInterval?: number;
-  defaultContextWindow?: number;
-  defaultMaxTokens?: number;
-};
-
 export type ModelsConfig = {
   mode?: "merge" | "replace";
   providers?: Record<string, ModelProviderConfig>;
-  bedrockDiscovery?: BedrockDiscoveryConfig;
 };

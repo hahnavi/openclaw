@@ -35,11 +35,7 @@ import { resolveOpenClawDocsPath } from "../docs-path.js";
 import { getApiKeyForModel, resolveModelAuthMode } from "../model-auth.js";
 import { ensureOpenClawModelsJson } from "../models-config.js";
 import { resolveOwnerDisplaySetting } from "../owner-display.js";
-import {
-  ensureSessionHeader,
-  validateAnthropicTurns,
-  validateGeminiTurns,
-} from "../pi-embedded-helpers.js";
+import { ensureSessionHeader, validateAnthropicTurns } from "../pi-embedded-helpers.js";
 import { applyPiCompactionSettingsFromConfig } from "../pi-settings.js";
 import { createOpenClawCodingTools } from "../pi-tools.js";
 import { resolveSandboxContext } from "../sandbox.js";
@@ -64,11 +60,6 @@ import {
   EMBEDDED_COMPACTION_TIMEOUT_MS,
 } from "./compaction-safety-timeout.js";
 import { buildEmbeddedExtensionFactories } from "./extensions.js";
-import {
-  logToolSchemasForGoogle,
-  sanitizeSessionHistory,
-  sanitizeToolsForGoogle,
-} from "./google.js";
 import { getDmHistoryLimitFromSessionKey, limitHistoryTurns } from "./history.js";
 import { resolveGlobalLane, resolveSessionLane } from "./lanes.js";
 import { log } from "./logger.js";
@@ -293,17 +284,9 @@ export async function compactEmbeddedPiSessionDirect(
     });
 
     if (!apiKeyInfo.apiKey) {
-      if (apiKeyInfo.mode !== "aws-sdk") {
-        throw new Error(
-          `No API key resolved for provider "${model.provider}" (auth mode: ${apiKeyInfo.mode}).`,
-        );
-      }
-    } else if (model.provider === "github-copilot") {
-      const { resolveCopilotApiToken } = await import("../../providers/github-copilot-token.js");
-      const copilotToken = await resolveCopilotApiToken({
-        githubToken: apiKeyInfo.apiKey,
-      });
-      authStorage.setRuntimeApiKey(model.provider, copilotToken.token);
+      throw new Error(
+        `No API key resolved for provider "${model.provider}" (auth mode: ${apiKeyInfo.mode}).`,
+      );
     } else {
       authStorage.setRuntimeApiKey(model.provider, apiKeyInfo.apiKey);
     }
@@ -385,9 +368,8 @@ export async function compactEmbeddedPiSessionDirect(
       modelContextWindowTokens: model.contextWindow,
       modelAuthMode: resolveModelAuthMode(model.provider, params.config),
     });
-    const tools = sanitizeToolsForGoogle({ tools: toolsRaw, provider });
+    const tools = toolsRaw;
     const allowedToolNames = collectAllowedToolNames({ tools });
-    logToolSchemasForGoogle({ tools, provider });
     const machineName = await getMachineDisplayName();
     const runtimeChannel = normalizeMessageChannel(params.messageChannel ?? params.messageProvider);
     let runtimeCapabilities = runtimeChannel
@@ -585,23 +567,10 @@ export async function compactEmbeddedPiSessionDirect(
       applySystemPromptOverrideToSession(session, systemPromptOverride());
 
       try {
-        const prior = await sanitizeSessionHistory({
-          messages: session.messages,
-          modelApi: model.api,
-          modelId,
-          provider,
-          allowedToolNames,
-          config: params.config,
-          sessionManager,
-          sessionId: params.sessionId,
-          policy: transcriptPolicy,
-        });
-        const validatedGemini = transcriptPolicy.validateGeminiTurns
-          ? validateGeminiTurns(prior)
-          : prior;
+        const prior = session.messages;
         const validated = transcriptPolicy.validateAnthropicTurns
-          ? validateAnthropicTurns(validatedGemini)
-          : validatedGemini;
+          ? validateAnthropicTurns(prior)
+          : prior;
         // Capture full message history BEFORE limiting — plugins need the complete conversation
         const preCompactionMessages = [...session.messages];
         const truncated = limitHistoryTurns(

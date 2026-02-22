@@ -412,26 +412,13 @@ export async function runEmbeddedPiAgent(
 
       const applyApiKeyInfo = async (candidate?: string): Promise<void> => {
         apiKeyInfo = await resolveApiKeyForCandidate(candidate);
-        const resolvedProfileId = apiKeyInfo.profileId ?? candidate;
+        void (apiKeyInfo.profileId ?? candidate);
         if (!apiKeyInfo.apiKey) {
-          if (apiKeyInfo.mode !== "aws-sdk") {
-            throw new Error(
-              `No API key resolved for provider "${model.provider}" (auth mode: ${apiKeyInfo.mode}).`,
-            );
-          }
-          lastProfileId = resolvedProfileId;
-          return;
+          throw new Error(
+            `No API key resolved for provider "${model.provider}" (auth mode: ${apiKeyInfo.mode}).`,
+          );
         }
-        if (model.provider === "github-copilot") {
-          const { resolveCopilotApiToken } =
-            await import("../../providers/github-copilot-token.js");
-          const copilotToken = await resolveCopilotApiToken({
-            githubToken: apiKeyInfo.apiKey,
-          });
-          authStorage.setRuntimeApiKey(model.provider, copilotToken.token);
-        } else {
-          authStorage.setRuntimeApiKey(model.provider, apiKeyInfo.apiKey);
-        }
+        authStorage.setRuntimeApiKey(model.provider, apiKeyInfo.apiKey);
         lastProfileId = apiKeyInfo.profileId;
       };
 

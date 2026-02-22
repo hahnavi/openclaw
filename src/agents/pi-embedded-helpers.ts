@@ -39,7 +39,6 @@ export {
   parseImageDimensionError,
   parseImageSizeError,
 } from "./pi-embedded-helpers/errors.js";
-export { isGoogleModelApi, sanitizeGoogleTurnOrdering } from "./pi-embedded-helpers/google.js";
 
 export { downgradeOpenAIReasoningBlocks } from "./pi-embedded-helpers/openai.js";
 export {
@@ -54,11 +53,7 @@ export {
 
 export { pickFallbackThinkingLevel } from "./pi-embedded-helpers/thinking.js";
 
-export {
-  mergeConsecutiveUserTurns,
-  validateAnthropicTurns,
-  validateGeminiTurns,
-} from "./pi-embedded-helpers/turns.js";
+export { mergeConsecutiveUserTurns, validateAnthropicTurns } from "./pi-embedded-helpers/turns.js";
 export type { EmbeddedContextFile, FailoverReason } from "./pi-embedded-helpers/types.js";
 
 export type { ToolCallIdMode } from "./tool-call-id.js";

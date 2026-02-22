@@ -1,6 +1,5 @@
 import fs from "node:fs/promises";
 import { createSubsystemLogger } from "../logging/subsystem.js";
-import { runGeminiEmbeddingBatches, type GeminiBatchRequest } from "./batch-gemini.js";
 import {
   OPENAI_BATCH_ENDPOINT,
   type OpenAiBatchRequest,
@@ -223,23 +222,6 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
         }),
       );
     }
-    if (this.provider.id === "gemini" && this.gemini) {
-      const entries = Object.entries(this.gemini.headers)
-        .filter(([key]) => {
-          const lower = key.toLowerCase();
-          return lower !== "authorization" && lower !== "x-goog-api-key";
-        })
-        .toSorted(([a], [b]) => a.localeCompare(b))
-        .map(([key, value]) => [key, value]);
-      return hashText(
-        JSON.stringify({
-          provider: "gemini",
-          baseUrl: this.gemini.baseUrl,
-          model: this.gemini.model,
-          headers: entries,
-        }),
-      );
-    }
     return hashText(JSON.stringify({ provider: this.provider.id, model: this.provider.model }));
   }
 
@@ -253,9 +235,6 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
     }
     if (this.provider.id === "openai" && this.openAi) {
       return this.embedChunksWithOpenAiBatch(chunks, entry, source);
-    }
-    if (this.provider.id === "gemini" && this.gemini) {
-      return this.embedChunksWithGeminiBatch(chunks, entry, source);
     }
     if (this.provider.id === "voyage" && this.voyage) {
       return this.embedChunksWithVoyageBatch(chunks, entry, source);
@@ -370,7 +349,7 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
     chunks: MemoryChunk[];
     entry: MemoryFileEntry | SessionFileEntry;
     source: MemorySource;
-    provider: "voyage" | "openai" | "gemini";
+    provider: "voyage" | "openai";
     enabled: boolean;
     buildRequest: (chunk: MemoryChunk) => Omit<TRequest, "custom_id">;
     runBatch: (runnerOptions: {
@@ -463,30 +442,6 @@ export abstract class MemoryManagerEmbeddingOps extends MemoryManagerSyncOps {
       runBatch: async (runnerOptions) =>
         await runOpenAiEmbeddingBatches({
           openAi: openAi!,
-          ...runnerOptions,
-        }),
-    });
-  }
-
-  private async embedChunksWithGeminiBatch(
-    chunks: MemoryChunk[],
-    entry: MemoryFileEntry | SessionFileEntry,
-    source: MemorySource,
-  ): Promise<number[][]> {
-    const gemini = this.gemini;
-    return await this.embedChunksWithProviderBatch<GeminiBatchRequest>({
-      chunks,
-      entry,
-      source,
-      provider: "gemini",
-      enabled: Boolean(gemini),
-      buildRequest: (chunk) => ({
-        content: { parts: [{ text: chunk.text }] },
-        taskType: "RETRIEVAL_DOCUMENT",
-      }),
-      runBatch: async (runnerOptions) =>
-        await runGeminiEmbeddingBatches({
-          gemini: gemini!,
           ...runnerOptions,
         }),
     });
