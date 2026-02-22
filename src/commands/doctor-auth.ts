@@ -4,10 +4,8 @@ import {
   formatRemainingShort,
 } from "../agents/auth-health.js";
 import {
-  CLAUDE_CLI_PROFILE_ID,
   CODEX_CLI_PROFILE_ID,
   ensureAuthProfileStore,
-  repairOAuthProfileIdMismatch,
   resolveApiKeyForProfile,
   resolveProfileUnusableUntilForDisplay,
 } from "../agents/auth-profiles.js";
@@ -16,32 +14,6 @@ import { formatCliCommand } from "../cli/command-format.js";
 import type { OpenClawConfig } from "../config/config.js";
 import { note } from "../terminal/note.js";
 import type { DoctorPrompter } from "./doctor-prompter.js";
-
-export async function maybeRepairAnthropicOAuthProfileId(
-  cfg: OpenClawConfig,
-  prompter: DoctorPrompter,
-): Promise<OpenClawConfig> {
-  const store = ensureAuthProfileStore();
-  const repair = repairOAuthProfileIdMismatch({
-    cfg,
-    store,
-    provider: "anthropic",
-    legacyProfileId: "anthropic:default",
-  });
-  if (!repair.migrated || repair.changes.length === 0) {
-    return cfg;
-  }
-
-  note(repair.changes.map((c) => `- ${c}`).join("\n"), "Auth profiles");
-  const apply = await prompter.confirm({
-    message: "Update Anthropic OAuth profile id in config now?",
-    initialValue: true,
-  });
-  if (!apply) {
-    return cfg;
-  }
-  return repair.config;
-}
 
 function pruneAuthOrder(
   order: Record<string, string[]> | undefined,
@@ -115,9 +87,6 @@ export async function maybeRemoveDeprecatedCliAuthProfiles(
 ): Promise<OpenClawConfig> {
   const store = ensureAuthProfileStore(undefined, { allowKeychainPrompt: false });
   const deprecated = new Set<string>();
-  if (store.profiles[CLAUDE_CLI_PROFILE_ID] || cfg.auth?.profiles?.[CLAUDE_CLI_PROFILE_ID]) {
-    deprecated.add(CLAUDE_CLI_PROFILE_ID);
-  }
   if (store.profiles[CODEX_CLI_PROFILE_ID] || cfg.auth?.profiles?.[CODEX_CLI_PROFILE_ID]) {
     deprecated.add(CODEX_CLI_PROFILE_ID);
   }
@@ -127,11 +96,6 @@ export async function maybeRemoveDeprecatedCliAuthProfiles(
   }
 
   const lines = ["Deprecated external CLI auth profiles detected (no longer supported):"];
-  if (deprecated.has(CLAUDE_CLI_PROFILE_ID)) {
-    lines.push(
-      `- ${CLAUDE_CLI_PROFILE_ID} (Anthropic): use setup-token → ${formatCliCommand("openclaw models auth setup-token")}`,
-    );
-  }
   if (deprecated.has(CODEX_CLI_PROFILE_ID)) {
     lines.push(
       `- ${CODEX_CLI_PROFILE_ID} (OpenAI Codex): use OAuth → ${formatCliCommand(
@@ -207,11 +171,6 @@ type AuthIssue = {
 };
 
 function formatAuthIssueHint(issue: AuthIssue): string | null {
-  if (issue.provider === "anthropic" && issue.profileId === CLAUDE_CLI_PROFILE_ID) {
-    return `Deprecated profile. Use ${formatCliCommand("openclaw models auth setup-token")} or ${formatCliCommand(
-      "openclaw configure",
-    )}.`;
-  }
   if (issue.provider === "openai-codex" && issue.profileId === CODEX_CLI_PROFILE_ID) {
     return `Deprecated profile. Use ${formatCliCommand(
       "openclaw models auth login --provider openai-codex",

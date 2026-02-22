@@ -3,30 +3,30 @@ import { restoreEnvVarRefs } from "./env-preserve.js";
 
 describe("restoreEnvVarRefs", () => {
   const env = {
-    ANTHROPIC_API_KEY: "sk-ant-api03-real-key",
+    GOOGLE_API_KEY: "google-real-key",
     OPENAI_API_KEY: "sk-openai-real-key",
     MY_TOKEN: "tok-12345",
   } as unknown as NodeJS.ProcessEnv;
 
   it("restores a simple ${VAR} reference when value matches", () => {
-    const incoming = { apiKey: "sk-ant-api03-real-key" };
-    const parsed = { apiKey: "${ANTHROPIC_API_KEY}" };
+    const incoming = { apiKey: "google-real-key" };
+    const parsed = { apiKey: "${GOOGLE_API_KEY}" };
     const result = restoreEnvVarRefs(incoming, parsed, env);
-    expect(result).toEqual({ apiKey: "${ANTHROPIC_API_KEY}" });
+    expect(result).toEqual({ apiKey: "${GOOGLE_API_KEY}" });
   });
 
   it("keeps new value when caller intentionally changed it", () => {
-    const incoming = { apiKey: "sk-ant-new-different-key" };
-    const parsed = { apiKey: "${ANTHROPIC_API_KEY}" };
+    const incoming = { apiKey: "google-new-different-key" };
+    const parsed = { apiKey: "${GOOGLE_API_KEY}" };
     const result = restoreEnvVarRefs(incoming, parsed, env);
-    expect(result).toEqual({ apiKey: "sk-ant-new-different-key" });
+    expect(result).toEqual({ apiKey: "google-new-different-key" });
   });
 
   it("handles nested objects", () => {
     const incoming = {
       models: {
         providers: {
-          anthropic: { apiKey: "sk-ant-api03-real-key" },
+          google: { apiKey: "google-real-key" },
           openai: { apiKey: "sk-openai-real-key" },
         },
       },
@@ -34,7 +34,7 @@ describe("restoreEnvVarRefs", () => {
     const parsed = {
       models: {
         providers: {
-          anthropic: { apiKey: "${ANTHROPIC_API_KEY}" },
+          google: { apiKey: "${GOOGLE_API_KEY}" },
           openai: { apiKey: "${OPENAI_API_KEY}" },
         },
       },
@@ -43,7 +43,7 @@ describe("restoreEnvVarRefs", () => {
     expect(result).toEqual({
       models: {
         providers: {
-          anthropic: { apiKey: "${ANTHROPIC_API_KEY}" },
+          google: { apiKey: "${GOOGLE_API_KEY}" },
           openai: { apiKey: "${OPENAI_API_KEY}" },
         },
       },
@@ -51,10 +51,10 @@ describe("restoreEnvVarRefs", () => {
   });
 
   it("preserves new keys not in parsed", () => {
-    const incoming = { apiKey: "sk-ant-api03-real-key", newField: "hello" };
-    const parsed = { apiKey: "${ANTHROPIC_API_KEY}" };
+    const incoming = { apiKey: "google-real-key", newField: "hello" };
+    const parsed = { apiKey: "${GOOGLE_API_KEY}" };
     const result = restoreEnvVarRefs(incoming, parsed, env);
-    expect(result).toEqual({ apiKey: "${ANTHROPIC_API_KEY}", newField: "hello" });
+    expect(result).toEqual({ apiKey: "${GOOGLE_API_KEY}", newField: "hello" });
   });
 
   it("handles non-env-var strings (no restoration needed)", () => {
@@ -65,14 +65,14 @@ describe("restoreEnvVarRefs", () => {
   });
 
   it("handles arrays", () => {
-    const incoming = ["sk-ant-api03-real-key", "literal"];
-    const parsed = ["${ANTHROPIC_API_KEY}", "literal"];
+    const incoming = ["google-real-key", "literal"];
+    const parsed = ["${GOOGLE_API_KEY}", "literal"];
     const result = restoreEnvVarRefs(incoming, parsed, env);
-    expect(result).toEqual(["${ANTHROPIC_API_KEY}", "literal"]);
+    expect(result).toEqual(["${GOOGLE_API_KEY}", "literal"]);
   });
 
   it("handles null/undefined parsed gracefully", () => {
-    const incoming = { apiKey: "sk-ant-api03-real-key" };
+    const incoming = { apiKey: "google-real-key" };
     expect(restoreEnvVarRefs(incoming, null, env)).toEqual(incoming);
     expect(restoreEnvVarRefs(incoming, undefined, env)).toEqual(incoming);
   });
@@ -102,10 +102,10 @@ describe("restoreEnvVarRefs", () => {
   });
 
   it("does not restore when parsed value has no env var pattern", () => {
-    const incoming = { apiKey: "sk-ant-api03-real-key" };
-    const parsed = { apiKey: "sk-ant-api03-real-key" };
+    const incoming = { apiKey: "google-real-key" };
+    const parsed = { apiKey: "google-real-key" };
     const result = restoreEnvVarRefs(incoming, parsed, env);
-    expect(result).toEqual({ apiKey: "sk-ant-api03-real-key" });
+    expect(result).toEqual({ apiKey: "google-real-key" });
   });
 
   // Edge case: env mutation between read and write (Greptile comment #1)
@@ -151,15 +151,15 @@ describe("restoreEnvVarRefs", () => {
 
   // Edge case: $${VAR} escape sequence (Greptile comment #2)
   it("handles $${VAR} escape sequence (literal ${VAR} in output)", () => {
-    // In the config file: $${ANTHROPIC_API_KEY}
-    // substituteString resolves this to literal "${ANTHROPIC_API_KEY}"
-    // So incoming would be "${ANTHROPIC_API_KEY}" (the literal text)
-    const incoming = { note: "${ANTHROPIC_API_KEY}" };
-    const parsed = { note: "$${ANTHROPIC_API_KEY}" };
+    // In the config file: $${GOOGLE_API_KEY}
+    // substituteString resolves this to literal "${GOOGLE_API_KEY}"
+    // So incoming would be "${GOOGLE_API_KEY}" (the literal text)
+    const incoming = { note: "${GOOGLE_API_KEY}" };
+    const parsed = { note: "$${GOOGLE_API_KEY}" };
 
     const result = restoreEnvVarRefs(incoming, parsed, env);
     // Should restore the $${} escape, not try to resolve ${} inside it
-    expect(result).toEqual({ note: "$${ANTHROPIC_API_KEY}" });
+    expect(result).toEqual({ note: "$${GOOGLE_API_KEY}" });
   });
 
   it("does not confuse $${VAR} escape with ${VAR} substitution", () => {

@@ -2,7 +2,6 @@ import { resolveFetch } from "./fetch.js";
 import { type ProviderAuth, resolveProviderAuths } from "./provider-usage.auth.js";
 import {
   fetchAntigravityUsage,
-  fetchClaudeUsage,
   fetchCodexUsage,
   fetchCopilotUsage,
   fetchGeminiUsage,
@@ -54,8 +53,6 @@ export async function loadProviderUsageSummary(
     withTimeout(
       (async (): Promise<ProviderUsageSnapshot> => {
         switch (auth.provider) {
-          case "anthropic":
-            return await fetchClaudeUsage(auth.token, timeoutMs, fetchFn);
           case "github-copilot":
             return await fetchCopilotUsage(auth.token, timeoutMs, fetchFn);
           case "google-antigravity":

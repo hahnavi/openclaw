@@ -19,12 +19,6 @@ export type ModelAliasIndex = {
   byKey: Map<string, string[]>;
 };
 
-const ANTHROPIC_MODEL_ALIASES: Record<string, string> = {
-  "opus-4.6": "claude-opus-4-6",
-  "opus-4.5": "claude-opus-4-5",
-  "sonnet-4.6": "claude-sonnet-4-6",
-  "sonnet-4.5": "claude-sonnet-4-5",
-};
 const OPENAI_CODEX_OAUTH_MODEL_PREFIXES = ["gpt-5.3-codex"] as const;
 
 function normalizeAliasKey(value: string): string {
@@ -85,9 +79,6 @@ export function findNormalizedProviderKey(
 
 export function isCliProvider(provider: string, cfg?: OpenClawConfig): boolean {
   const normalized = normalizeProviderId(provider);
-  if (normalized === "claude-cli") {
-    return true;
-  }
   if (normalized === "codex-cli") {
     return true;
   }
@@ -95,19 +86,7 @@ export function isCliProvider(provider: string, cfg?: OpenClawConfig): boolean {
   return Object.keys(backends).some((key) => normalizeProviderId(key) === normalized);
 }
 
-function normalizeAnthropicModelId(model: string): string {
-  const trimmed = model.trim();
-  if (!trimmed) {
-    return trimmed;
-  }
-  const lower = trimmed.toLowerCase();
-  return ANTHROPIC_MODEL_ALIASES[lower] ?? trimmed;
-}
-
 function normalizeProviderModelId(provider: string, model: string): string {
-  if (provider === "anthropic") {
-    return normalizeAnthropicModelId(model);
-  }
   if (provider === "google") {
     return normalizeGoogleModelId(model);
   }
@@ -272,11 +251,11 @@ export function resolveConfiguredModelRef(params: {
         return aliasMatch.ref;
       }
 
-      // Default to anthropic if no provider is specified, but warn as this is deprecated.
+      // Default to openai if no provider is specified, but warn as this is deprecated.
       log.warn(
-        `Model "${trimmed}" specified without provider. Falling back to "anthropic/${trimmed}". Please use "anthropic/${trimmed}" in your config.`,
+        `Model "${trimmed}" specified without provider. Falling back to "openai/${trimmed}". Please use "openai/${trimmed}" in your config.`,
       );
-      return { provider: "anthropic", model: trimmed };
+      return { provider: "openai", model: trimmed };
     }
 
     const resolved = resolveModelRefFromString({

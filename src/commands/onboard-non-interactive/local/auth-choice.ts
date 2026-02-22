@@ -6,7 +6,7 @@ import { upsertSharedEnvVar } from "../../../infra/env-file.js";
 import type { RuntimeEnv } from "../../../runtime.js";
 import { shortenHomePath } from "../../../utils.js";
 import { normalizeSecretInput } from "../../../utils/normalize-secret-input.js";
-import { buildTokenProfileId, validateAnthropicSetupToken } from "../../auth-token.js";
+import { buildTokenProfileId } from "../../auth-token.js";
 import { applyGoogleGeminiModelDefault } from "../../google-gemini-model-default.js";
 import { applyPrimaryModel } from "../../model-picker.js";
 import {
@@ -141,12 +141,6 @@ export async function applyNonInteractiveAuthChoice(params: {
     const tokenRaw = normalizeSecretInput(opts.token);
     if (!tokenRaw) {
       runtime.error("Missing --token for --auth-choice token.");
-      runtime.exit(1);
-      return null;
-    }
-    const tokenError = validateAnthropicSetupToken(tokenRaw);
-    if (tokenError) {
-      runtime.error(tokenError);
       runtime.exit(1);
       return null;
     }

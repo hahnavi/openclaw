@@ -58,15 +58,15 @@ describe("resolveConfigEnvVars", () => {
         {
           providers: [
             { name: "openai", apiKey: "${OPENAI_KEY}" },
-            { name: "anthropic", apiKey: "${ANTHROPIC_KEY}" },
+            { name: "google", apiKey: "${GOOGLE_KEY}" },
           ],
         },
-        { OPENAI_KEY: "sk-xxx", ANTHROPIC_KEY: "sk-yyy" },
+        { OPENAI_KEY: "sk-xxx", GOOGLE_KEY: "google-yyy" },
       );
       expect(result).toEqual({
         providers: [
           { name: "openai", apiKey: "sk-xxx" },
-          { name: "anthropic", apiKey: "sk-yyy" },
+          { name: "google", apiKey: "google-yyy" },
         ],
       });
     });

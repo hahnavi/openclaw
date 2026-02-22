@@ -1,6 +1,5 @@
 import { normalizeProviderId } from "../../agents/model-selection.js";
 import type { MediaUnderstandingProvider } from "../types.js";
-import { anthropicProvider } from "./anthropic/index.js";
 import { deepgramProvider } from "./deepgram/index.js";
 import { googleProvider } from "./google/index.js";
 import { groqProvider } from "./groq/index.js";
@@ -12,7 +11,6 @@ const PROVIDERS: MediaUnderstandingProvider[] = [
   groqProvider,
   openaiProvider,
   googleProvider,
-  anthropicProvider,
   minimaxProvider,
   zaiProvider,
   deepgramProvider,

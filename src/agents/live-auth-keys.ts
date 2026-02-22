@@ -17,12 +17,6 @@ type ProviderApiKeyConfig = {
 };
 
 const PROVIDER_API_KEY_CONFIG: Record<string, Omit<ProviderApiKeyConfig, "fallbackVars">> = {
-  anthropic: {
-    liveSingle: "OPENCLAW_LIVE_ANTHROPIC_KEY",
-    listVar: "OPENCLAW_LIVE_ANTHROPIC_KEYS",
-    primaryVar: "ANTHROPIC_API_KEY",
-    prefixedVar: "ANTHROPIC_API_KEY_",
-  },
   google: {
     liveSingle: GOOGLE_LIVE_SINGLE_KEY,
     listVar: "GEMINI_API_KEYS",
@@ -139,10 +133,6 @@ export function collectProviderApiKeys(provider: string): string[] {
   return Array.from(seen);
 }
 
-export function collectAnthropicApiKeys(): string[] {
-  return collectProviderApiKeys("anthropic");
-}
-
 export function collectGeminiApiKeys(): string[] {
   return collectProviderApiKeys("google");
 }
@@ -165,37 +155,6 @@ export function isApiKeyRateLimitError(message: string): boolean {
     return true;
   }
   if (lower.includes("too many requests")) {
-    return true;
-  }
-  return false;
-}
-
-export function isAnthropicRateLimitError(message: string): boolean {
-  return isApiKeyRateLimitError(message);
-}
-
-export function isAnthropicBillingError(message: string): boolean {
-  const lower = message.toLowerCase();
-  if (lower.includes("credit balance")) {
-    return true;
-  }
-  if (lower.includes("insufficient credit")) {
-    return true;
-  }
-  if (lower.includes("insufficient credits")) {
-    return true;
-  }
-  if (lower.includes("payment required")) {
-    return true;
-  }
-  if (lower.includes("billing") && lower.includes("disabled")) {
-    return true;
-  }
-  if (
-    /["']?(?:status|code)["']?\s*[:=]\s*402\b|\bhttp\s*402\b|\berror(?:\s+code)?\s*[:=]?\s*402\b|\b(?:got|returned|received)\s+(?:a\s+)?402\b|^\s*402\spayment/i.test(
-      lower,
-    )
-  ) {
     return true;
   }
   return false;

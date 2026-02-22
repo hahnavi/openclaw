@@ -33,7 +33,6 @@ import { normalizeMessageChannel } from "../../../utils/message-channel.js";
 import { isReasoningTagProvider } from "../../../utils/provider-utils.js";
 import { resolveOpenClawAgentDir } from "../../agent-paths.js";
 import { resolveSessionAgentIds } from "../../agent-scope.js";
-import { createAnthropicPayloadLogger } from "../../anthropic-payload-log.js";
 import { makeBootstrapWarn, resolveBootstrapContextForRun } from "../../bootstrap-files.js";
 import { createCacheTrace } from "../../cache-trace.js";
 import {
@@ -703,16 +702,6 @@ export async function runEmbeddedAttempt(
         modelApi: params.model.api,
         workspaceDir: params.workspaceDir,
       });
-      const anthropicPayloadLogger = createAnthropicPayloadLogger({
-        env: process.env,
-        runId: params.runId,
-        sessionId: activeSession.sessionId,
-        sessionKey: params.sessionKey,
-        provider: params.provider,
-        modelId: params.modelId,
-        modelApi: params.model.api,
-        workspaceDir: params.workspaceDir,
-      });
 
       // Ollama native API: bypass SDK's streamSimple and use direct /api/chat calls
       // for reliable streaming + tool calling support (#11828).
@@ -747,7 +736,7 @@ export async function runEmbeddedAttempt(
         activeSession.agent.streamFn = cacheTrace.wrapStreamFn(activeSession.agent.streamFn);
       }
 
-      // Copilot/Claude can reject persisted `thinking` blocks (e.g. thinkingSignature:"reasoning_text")
+      // Copilot can reject persisted `thinking` blocks (e.g. thinkingSignature:"reasoning_text")
       // on *any* follow-up provider call (including tool continuations). Wrap the stream function
       // so every outbound request sees sanitized messages.
       if (transcriptPolicy.dropThinkingBlocks) {
@@ -768,12 +757,6 @@ export async function runEmbeddedAttempt(
           } as unknown;
           return inner(model, nextContext as typeof context, options);
         };
-      }
-
-      if (anthropicPayloadLogger) {
-        activeSession.agent.streamFn = anthropicPayloadLogger.wrapStreamFn(
-          activeSession.agent.streamFn,
-        );
       }
 
       try {
@@ -1233,7 +1216,6 @@ export async function runEmbeddedAttempt(
               ? "prompt error"
               : undefined,
         });
-        anthropicPayloadLogger?.recordUsage(messagesSnapshot, promptError);
 
         // Run agent_end hooks to allow plugins to analyze the conversation
         // This is fire-and-forget, so we don't await

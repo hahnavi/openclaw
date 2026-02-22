@@ -8,7 +8,6 @@ export {
   modelsAuthAddCommand,
   modelsAuthLoginCommand,
   modelsAuthPasteTokenCommand,
-  modelsAuthSetupTokenCommand,
 } from "./models/auth.js";
 export {
   modelsAuthOrderClearCommand,

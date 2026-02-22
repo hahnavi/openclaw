@@ -13,7 +13,7 @@ For model selection rules, see [/concepts/models](/concepts/models).
 
 ## Quick rules
 
-- Model refs use `provider/model` (example: `opencode/claude-opus-4-6`).
+- Model refs use `provider/model` (example: `openai/gpt-5.1-codex`).
 - If you set `agents.defaults.models`, it becomes the allowlist.
 - CLI helpers: `openclaw onboard`, `openclaw models list`, `openclaw models set <provider/model>`.
 
@@ -47,20 +47,6 @@ OpenClaw ships with the pi‑ai catalog. These providers require **no**
 ```json5
 {
   agents: { defaults: { model: { primary: "openai/gpt-5.1-codex" } } },
-}
-```
-
-### Anthropic
-
-- Provider: `anthropic`
-- Auth: `ANTHROPIC_API_KEY` or `claude setup-token`
-- Optional rotation: `ANTHROPIC_API_KEYS`, `ANTHROPIC_API_KEY_1`, `ANTHROPIC_API_KEY_2`, plus `OPENCLAW_LIVE_ANTHROPIC_KEY` (single override)
-- Example model: `anthropic/claude-opus-4-6`
-- CLI: `openclaw onboard --auth-choice token` (paste setup-token) or `openclaw models auth paste-token --provider anthropic`
-
-```json5
-{
-  agents: { defaults: { model: { primary: "anthropic/claude-opus-4-6" } } },
 }
 ```
 

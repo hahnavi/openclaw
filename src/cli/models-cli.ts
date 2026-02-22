@@ -10,7 +10,6 @@ import {
   modelsAuthOrderGetCommand,
   modelsAuthOrderSetCommand,
   modelsAuthPasteTokenCommand,
-  modelsAuthSetupTokenCommand,
   modelsFallbacksAddCommand,
   modelsFallbacksClearCommand,
   modelsFallbacksListCommand,
@@ -316,23 +315,6 @@ export function registerModelsCli(program: Command) {
             provider: opts.provider as string | undefined,
             method: opts.method as string | undefined,
             setDefault: Boolean(opts.setDefault),
-          },
-          defaultRuntime,
-        );
-      });
-    });
-
-  auth
-    .command("setup-token")
-    .description("Run a provider CLI to create/sync a token (TTY required)")
-    .option("--provider <name>", "Provider id (default: anthropic)")
-    .option("--yes", "Skip confirmation", false)
-    .action(async (opts) => {
-      await runModelsCommand(async () => {
-        await modelsAuthSetupTokenCommand(
-          {
-            provider: opts.provider as string | undefined,
-            yes: Boolean(opts.yes),
           },
           defaultRuntime,
         );
