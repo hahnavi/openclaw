@@ -26,7 +26,6 @@ struct ScreenWebView: UIViewRepresentable {
 final class ScreenWebViewCoordinator: NSObject {
     private weak var controller: ScreenController?
     private let navigationDelegate = ScreenNavigationDelegate()
-    private let a2uiActionHandler = CanvasA2UIActionMessageHandler()
     private let userContentController = WKUserContentController()
 
     private(set) var managedWebView: WKWebView?
@@ -36,7 +35,6 @@ final class ScreenWebViewCoordinator: NSObject {
         self.controller = controller
         super.init()
         self.navigationDelegate.controller = controller
-        self.a2uiActionHandler.controller = controller
     }
 
     func makeContainerView() -> UIView {
@@ -49,7 +47,6 @@ final class ScreenWebViewCoordinator: NSObject {
 
         let webView = Self.makeWebView(userContentController: self.userContentController)
         webView.navigationDelegate = self.navigationDelegate
-        self.installA2UIHandlers()
 
         webView.translatesAutoresizingMaskIntoConstraints = false
         container.addSubview(webView)
@@ -71,7 +68,6 @@ final class ScreenWebViewCoordinator: NSObject {
         let controllerChanged = self.controller !== controller
         self.controller = controller
         self.navigationDelegate.controller = controller
-        self.a2uiActionHandler.controller = controller
         if controllerChanged, let managedWebView {
             previousController?.detachWebView(managedWebView)
             controller.attachWebView(managedWebView)
@@ -83,9 +79,7 @@ final class ScreenWebViewCoordinator: NSObject {
             self.controller?.detachWebView(managedWebView)
             managedWebView.navigationDelegate = nil
         }
-        self.removeA2UIHandlers()
         self.navigationDelegate.controller = nil
-        self.a2uiActionHandler.controller = nil
         self.managedWebView = nil
         self.containerView = nil
     }
@@ -108,18 +102,6 @@ final class ScreenWebViewCoordinator: NSObject {
         scrollView.automaticallyAdjustsScrollIndicatorInsets = false
 
         return webView
-    }
-
-    private func installA2UIHandlers() {
-        for name in CanvasA2UIActionMessageHandler.handlerNames {
-            self.userContentController.add(self.a2uiActionHandler, name: name)
-        }
-    }
-
-    private func removeA2UIHandlers() {
-        for name in CanvasA2UIActionMessageHandler.handlerNames {
-            self.userContentController.removeScriptMessageHandler(forName: name)
-        }
     }
 }
 
@@ -165,29 +147,5 @@ private final class ScreenNavigationDelegate: NSObject, WKNavigationDelegate {
 
     func webView(_: WKWebView, didFail _: WKNavigation?, withError error: any Error) {
         self.controller?.errorText = error.localizedDescription
-    }
-}
-
-private final class CanvasA2UIActionMessageHandler: NSObject, WKScriptMessageHandler {
-    static let messageName = "openclawCanvasA2UIAction"
-    static let handlerNames = [messageName]
-
-    weak var controller: ScreenController?
-
-    func userContentController(_: WKUserContentController, didReceive message: WKScriptMessage) {
-        guard Self.handlerNames.contains(message.name) else { return }
-        guard let controller else { return }
-
-        guard let url = message.webView?.url else { return }
-        if url.isFileURL {
-            guard controller.isTrustedCanvasUIURL(url) else { return }
-        } else {
-            // For security, only accept actions from local-network pages (e.g. the canvas host).
-            guard controller.isLocalNetworkCanvasURL(url) else { return }
-        }
-
-        guard let body = ScreenController.parseA2UIActionBody(message.body) else { return }
-
-        controller.onA2UIAction?(body)
     }
 }

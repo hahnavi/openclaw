@@ -17,7 +17,7 @@ let server: Awaited<ReturnType<typeof startServerWithClient>>["server"];
 let ws: Awaited<ReturnType<typeof startServerWithClient>>["ws"];
 
 beforeAll(async () => {
-  const started = await startServerWithClient(undefined, { controlUiEnabled: true });
+  const started = await startServerWithClient(undefined, {});
   server = started.server;
   ws = started.ws;
   await connectOk(ws);

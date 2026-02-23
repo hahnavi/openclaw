@@ -50,7 +50,6 @@ const GATEWAY_TEST_ENV_KEYS = [
   "OPENCLAW_CONFIG_PATH",
   "OPENCLAW_SKIP_BROWSER_CONTROL_SERVER",
   "OPENCLAW_SKIP_GMAIL_WATCHER",
-  "OPENCLAW_SKIP_CANVAS_HOST",
   "OPENCLAW_BUNDLED_PLUGINS_DIR",
   "OPENCLAW_SKIP_CHANNELS",
   "OPENCLAW_SKIP_PROVIDERS",
@@ -135,7 +134,6 @@ async function resetGatewayTestState(options: { uniqueConfigRoot: boolean }) {
   testState.gatewayAuth = { mode: "token", token: "test-gateway-token-1234567890" };
   testState.gatewayControlUi = undefined;
   testState.hooksConfig = undefined;
-  testState.canvasHostPort = undefined;
   testState.legacyIssues = [];
   testState.legacyParsed = {};
   testState.migrationConfig = null;
@@ -304,9 +302,7 @@ export function onceMessage<T extends GatewayTestMessage = GatewayTestMessage>(
 
 export async function startGatewayServer(port: number, opts?: GatewayServerOptions) {
   const mod = await getServerModule();
-  const resolvedOpts =
-    opts?.controlUiEnabled === undefined ? { ...opts, controlUiEnabled: false } : opts;
-  return await mod.startGatewayServer(port, resolvedOpts);
+  return await mod.startGatewayServer(port, opts);
 }
 
 async function startGatewayServerWithRetries(params: {

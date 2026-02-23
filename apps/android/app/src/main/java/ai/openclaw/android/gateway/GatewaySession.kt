@@ -84,7 +84,6 @@ class GatewaySession(
   private val writeLock = Mutex()
   private val pending = ConcurrentHashMap<String, CompletableDeferred<RpcResponse>>()
 
-  @Volatile private var canvasHostUrl: String? = null
   @Volatile private var mainSessionKey: String? = null
 
   private data class DesiredConnection(
@@ -118,7 +117,6 @@ class GatewaySession(
     scope.launch(Dispatchers.IO) {
       job?.cancelAndJoin()
       job = null
-      canvasHostUrl = null
       mainSessionKey = null
       onDisconnected("Offline")
     }
@@ -128,7 +126,6 @@ class GatewaySession(
     currentConnection?.closeQuietly()
   }
 
-  fun currentCanvasHostUrl(): String? = canvasHostUrl
   fun currentMainSessionKey(): String? = mainSessionKey
 
   suspend fun sendNodeEvent(event: String, payloadJson: String?) {
@@ -320,8 +317,6 @@ class GatewaySession(
       if (!deviceToken.isNullOrBlank()) {
         deviceAuthStore.saveToken(identity.deviceId, authRole, deviceToken)
       }
-      val rawCanvas = obj["canvasHostUrl"].asStringOrNull()
-      canvasHostUrl = normalizeCanvasHostUrl(rawCanvas, endpoint)
       val sessionDefaults =
         obj["snapshot"].asObjectOrNull()
           ?.get("sessionDefaults").asObjectOrNull()
@@ -579,7 +574,6 @@ class GatewaySession(
       conn.awaitClose()
     } finally {
       currentConnection = null
-      canvasHostUrl = null
       mainSessionKey = null
     }
   }
@@ -609,44 +603,6 @@ class GatewaySession(
         nonce,
       )
     return parts.joinToString("|")
-  }
-
-  private fun normalizeCanvasHostUrl(raw: String?, endpoint: GatewayEndpoint): String? {
-    val trimmed = raw?.trim().orEmpty()
-    val parsed = trimmed.takeIf { it.isNotBlank() }?.let { runCatching { java.net.URI(it) }.getOrNull() }
-    val host = parsed?.host?.trim().orEmpty()
-    val port = parsed?.port ?: -1
-    val scheme = parsed?.scheme?.trim().orEmpty().ifBlank { "http" }
-
-    // Detect TLS reverse proxy: endpoint on port 443, or domain-based host
-    val tls = endpoint.port == 443 || endpoint.host.contains(".")
-
-    // If raw URL is a non-loopback address AND we're behind TLS reverse proxy,
-    // fix the port (gateway sends its internal port like 18789, but we need 443 via Caddy)
-    if (trimmed.isNotBlank() && !isLoopbackHost(host)) {
-      if (tls && port > 0 && port != 443) {
-        // Rewrite the URL to use the reverse proxy port instead of the raw gateway port
-        val fixedScheme = "https"
-        val formattedHost = if (host.contains(":")) "[${host}]" else host
-        return "$fixedScheme://$formattedHost"
-      }
-      return trimmed
-    }
-
-    val fallbackHost =
-      endpoint.tailnetDns?.trim().takeIf { !it.isNullOrEmpty() }
-        ?: endpoint.lanHost?.trim().takeIf { !it.isNullOrEmpty() }
-        ?: endpoint.host.trim()
-    if (fallbackHost.isEmpty()) return trimmed.ifBlank { null }
-
-    // When connecting through a reverse proxy (TLS on standard port), use the
-    // connection endpoint's scheme and port instead of the raw canvas port.
-    val fallbackScheme = if (tls) "https" else scheme
-    // Behind reverse proxy, always use the proxy port (443), not the raw canvas port
-    val fallbackPort = if (tls) endpoint.port else (endpoint.canvasPort ?: endpoint.port)
-    val formattedHost = if (fallbackHost.contains(":")) "[${fallbackHost}]" else fallbackHost
-    val portSuffix = if ((fallbackScheme == "https" && fallbackPort == 443) || (fallbackScheme == "http" && fallbackPort == 80)) "" else ":$fallbackPort"
-    return "$fallbackScheme://$formattedHost$portSuffix"
   }
 
   private fun isLoopbackHost(raw: String?): Boolean {

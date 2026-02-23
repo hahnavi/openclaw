@@ -46,10 +46,6 @@ actor MacNodeRuntime {
                  OpenClawCanvasCommand.evalJS.rawValue,
                  OpenClawCanvasCommand.snapshot.rawValue:
                 return try await self.handleCanvasInvoke(req)
-            case OpenClawCanvasA2UICommand.reset.rawValue,
-                 OpenClawCanvasA2UICommand.push.rawValue,
-                 OpenClawCanvasA2UICommand.pushJSONL.rawValue:
-                return try await self.handleA2UIInvoke(req)
             case OpenClawCameraCommand.snap.rawValue,
                  OpenClawCameraCommand.clip.rawValue,
                  OpenClawCameraCommand.list.rawValue:
@@ -77,7 +73,7 @@ actor MacNodeRuntime {
     }
 
     private func isCanvasCommand(_ command: String) -> Bool {
-        command.hasPrefix("canvas.") || command.hasPrefix("canvas.a2ui.")
+        command.hasPrefix("canvas.")
     }
 
     private func handleCanvasInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
@@ -150,18 +146,6 @@ actor MacNodeRuntime {
             return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: payload)
         default:
             return Self.errorResponse(req, code: .invalidRequest, message: "INVALID_REQUEST: unknown command")
-        }
-    }
-
-    private func handleA2UIInvoke(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        switch req.command {
-        case OpenClawCanvasA2UICommand.reset.rawValue:
-            try await self.handleA2UIReset(req)
-        case OpenClawCanvasA2UICommand.push.rawValue,
-             OpenClawCanvasA2UICommand.pushJSONL.rawValue:
-            try await self.handleA2UIPush(req)
-        default:
-            Self.errorResponse(req, code: .invalidRequest, message: "INVALID_REQUEST: unknown command")
         }
     }
 
@@ -337,102 +321,6 @@ actor MacNodeRuntime {
         let services = await self.makeMainActorServices()
         self.cachedMainActorServices = services
         return services
-    }
-
-    private func handleA2UIReset(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        try await self.ensureA2UIHost()
-
-        let sessionKey = self.mainSessionKey
-        let json = try await CanvasManager.shared.eval(sessionKey: sessionKey, javaScript: """
-        (() => {
-          const host = globalThis.openclawA2UI;
-          if (!host) return JSON.stringify({ ok: false, error: "missing openclawA2UI" });
-          return JSON.stringify(host.reset());
-        })()
-        """)
-        return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: json)
-    }
-
-    private func handleA2UIPush(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {
-        let command = req.command
-        let messages: [OpenClawKit.AnyCodable]
-        if command == OpenClawCanvasA2UICommand.pushJSONL.rawValue {
-            let params = try Self.decodeParams(OpenClawCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
-            messages = try OpenClawCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
-        } else {
-            do {
-                let params = try Self.decodeParams(OpenClawCanvasA2UIPushParams.self, from: req.paramsJSON)
-                messages = params.messages
-            } catch {
-                let params = try Self.decodeParams(OpenClawCanvasA2UIPushJSONLParams.self, from: req.paramsJSON)
-                messages = try OpenClawCanvasA2UIJSONL.decodeMessagesFromJSONL(params.jsonl)
-            }
-        }
-
-        try await self.ensureA2UIHost()
-
-        let messagesJSON = try OpenClawCanvasA2UIJSONL.encodeMessagesJSONArray(messages)
-        let js = """
-        (() => {
-          try {
-            const host = globalThis.openclawA2UI;
-            if (!host) return JSON.stringify({ ok: false, error: "missing openclawA2UI" });
-            const messages = \(messagesJSON);
-            return JSON.stringify(host.applyMessages(messages));
-          } catch (e) {
-            return JSON.stringify({ ok: false, error: String(e?.message ?? e) });
-          }
-        })()
-        """
-        let sessionKey = self.mainSessionKey
-        let resultJSON = try await CanvasManager.shared.eval(sessionKey: sessionKey, javaScript: js)
-        return BridgeInvokeResponse(id: req.id, ok: true, payloadJSON: resultJSON)
-    }
-
-    private func ensureA2UIHost() async throws {
-        if await self.isA2UIReady() { return }
-        guard let a2uiUrl = await self.resolveA2UIHostUrl() else {
-            throw NSError(domain: "Canvas", code: 30, userInfo: [
-                NSLocalizedDescriptionKey: "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host",
-            ])
-        }
-        let sessionKey = self.mainSessionKey
-        _ = try await MainActor.run {
-            try CanvasManager.shared.show(sessionKey: sessionKey, path: a2uiUrl)
-        }
-        if await self.isA2UIReady(poll: true) { return }
-        throw NSError(domain: "Canvas", code: 31, userInfo: [
-            NSLocalizedDescriptionKey: "A2UI_HOST_UNAVAILABLE: A2UI host not reachable",
-        ])
-    }
-
-    private func resolveA2UIHostUrl() async -> String? {
-        guard let raw = await GatewayConnection.shared.canvasHostUrl() else { return nil }
-        let trimmed = raw.trimmingCharacters(in: .whitespacesAndNewlines)
-        guard !trimmed.isEmpty, let baseUrl = URL(string: trimmed) else { return nil }
-        return baseUrl.appendingPathComponent("__openclaw__/a2ui/").absoluteString + "?platform=macos"
-    }
-
-    private func isA2UIReady(poll: Bool = false) async -> Bool {
-        let deadline = poll ? Date().addingTimeInterval(6.0) : Date()
-        while true {
-            do {
-                let sessionKey = self.mainSessionKey
-                let ready = try await CanvasManager.shared.eval(sessionKey: sessionKey, javaScript: """
-                (() => {
-                  const host = globalThis.openclawA2UI;
-                  return String(Boolean(host));
-                })()
-                """)
-                let trimmed = ready.trimmingCharacters(in: .whitespacesAndNewlines)
-                if trimmed == "true" { return true }
-            } catch {
-                // Ignore transient eval failures while the page is loading.
-            }
-
-            guard poll, Date() < deadline else { return false }
-            try? await Task.sleep(nanoseconds: 120_000_000)
-        }
     }
 
     private func handleSystemRun(_ req: BridgeInvokeRequest) async throws -> BridgeInvokeResponse {

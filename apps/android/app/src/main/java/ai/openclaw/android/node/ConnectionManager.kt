@@ -7,7 +7,6 @@ import ai.openclaw.android.gateway.GatewayClientInfo
 import ai.openclaw.android.gateway.GatewayConnectOptions
 import ai.openclaw.android.gateway.GatewayEndpoint
 import ai.openclaw.android.gateway.GatewayTlsParams
-import ai.openclaw.android.protocol.OpenClawCanvasA2UICommand
 import ai.openclaw.android.protocol.OpenClawCanvasCommand
 import ai.openclaw.android.protocol.OpenClawCameraCommand
 import ai.openclaw.android.protocol.OpenClawLocationCommand
@@ -86,9 +85,6 @@ class ConnectionManager(
       add(OpenClawCanvasCommand.Navigate.rawValue)
       add(OpenClawCanvasCommand.Eval.rawValue)
       add(OpenClawCanvasCommand.Snapshot.rawValue)
-      add(OpenClawCanvasA2UICommand.Push.rawValue)
-      add(OpenClawCanvasA2UICommand.PushJSONL.rawValue)
-      add(OpenClawCanvasA2UICommand.Reset.rawValue)
       add(OpenClawScreenCommand.Record.rawValue)
       if (cameraEnabled()) {
         add(OpenClawCameraCommand.Snap.rawValue)

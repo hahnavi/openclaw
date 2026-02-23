@@ -1,7 +1,6 @@
 package ai.openclaw.android.node
 
 import ai.openclaw.android.gateway.GatewaySession
-import ai.openclaw.android.protocol.OpenClawCanvasA2UICommand
 import ai.openclaw.android.protocol.OpenClawCanvasCommand
 import ai.openclaw.android.protocol.OpenClawCameraCommand
 import ai.openclaw.android.protocol.OpenClawLocationCommand
@@ -14,7 +13,6 @@ class InvokeDispatcher(
   private val locationHandler: LocationHandler,
   private val screenHandler: ScreenHandler,
   private val smsHandler: SmsHandler,
-  private val a2uiHandler: A2UIHandler,
   private val debugHandler: DebugHandler,
   private val appUpdateHandler: AppUpdateHandler,
   private val isForeground: () -> Boolean,
@@ -25,7 +23,6 @@ class InvokeDispatcher(
     // Check foreground requirement for canvas/camera/screen commands
     if (
       command.startsWith(OpenClawCanvasCommand.NamespacePrefix) ||
-        command.startsWith(OpenClawCanvasA2UICommand.NamespacePrefix) ||
         command.startsWith(OpenClawCameraCommand.NamespacePrefix) ||
         command.startsWith(OpenClawScreenCommand.NamespacePrefix)
     ) {
@@ -100,50 +97,6 @@ class InvokeDispatcher(
             )
           }
         GatewaySession.InvokeResult.ok("""{"format":"${snapshotParams.format.rawValue}","base64":"$base64"}""")
-      }
-
-      // A2UI commands
-      OpenClawCanvasA2UICommand.Reset.rawValue -> {
-        val a2uiUrl = a2uiHandler.resolveA2uiHostUrl()
-          ?: return GatewaySession.InvokeResult.error(
-            code = "A2UI_HOST_NOT_CONFIGURED",
-            message = "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host",
-          )
-        val ready = a2uiHandler.ensureA2uiReady(a2uiUrl)
-        if (!ready) {
-          return GatewaySession.InvokeResult.error(
-            code = "A2UI_HOST_UNAVAILABLE",
-            message = "A2UI host not reachable",
-          )
-        }
-        val res = canvas.eval(A2UIHandler.a2uiResetJS)
-        GatewaySession.InvokeResult.ok(res)
-      }
-      OpenClawCanvasA2UICommand.Push.rawValue, OpenClawCanvasA2UICommand.PushJSONL.rawValue -> {
-        val messages =
-          try {
-            a2uiHandler.decodeA2uiMessages(command, paramsJson)
-          } catch (err: Throwable) {
-            return GatewaySession.InvokeResult.error(
-              code = "INVALID_REQUEST",
-              message = err.message ?: "invalid A2UI payload"
-            )
-          }
-        val a2uiUrl = a2uiHandler.resolveA2uiHostUrl()
-          ?: return GatewaySession.InvokeResult.error(
-            code = "A2UI_HOST_NOT_CONFIGURED",
-            message = "A2UI_HOST_NOT_CONFIGURED: gateway did not advertise canvas host",
-          )
-        val ready = a2uiHandler.ensureA2uiReady(a2uiUrl)
-        if (!ready) {
-          return GatewaySession.InvokeResult.error(
-            code = "A2UI_HOST_UNAVAILABLE",
-            message = "A2UI host not reachable",
-          )
-        }
-        val js = A2UIHandler.a2uiApplyMessagesJS(messages)
-        val res = canvas.eval(js)
-        GatewaySession.InvokeResult.ok(res)
       }
 
       // Camera commands

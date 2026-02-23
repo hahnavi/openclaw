@@ -367,7 +367,7 @@ Most fields hot-apply without downtime. In `hybrid` mode, restart-required chang
 | Tools & media       | `tools`, `browser`, `skills`, `audio`, `talk`                        | No              |
 | UI & misc           | `ui`, `logging`, `identity`, `bindings`                              | No              |
 | Gateway server      | `gateway.*` (port, bind, auth, tailscale, TLS, HTTP)                 | **Yes**         |
-| Infrastructure      | `discovery`, `canvasHost`, `plugins`                                 | **Yes**         |
+| Infrastructure      | `discovery`, `plugins`                                               | **Yes**         |
 
 <Note>
 `gateway.reload` and `gateway.remote` are exceptions — changing them does **not** trigger a restart.

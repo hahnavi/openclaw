@@ -26,7 +26,6 @@ async function startServer(port: number, opts?: { openResponsesEnabled?: boolean
   const serverOpts = {
     host: "127.0.0.1",
     auth: { mode: "token", token: "secret" },
-    controlUiEnabled: false,
   } as const;
   return await startGatewayServer(
     port,

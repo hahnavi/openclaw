@@ -134,13 +134,6 @@ class NodeRuntime(context: Context) {
     sms = sms,
   )
 
-  private val a2uiHandler: A2UIHandler = A2UIHandler(
-    canvas = canvas,
-    json = json,
-    getNodeCanvasHostUrl = { nodeSession.currentCanvasHostUrl() },
-    getOperatorCanvasHostUrl = { operatorSession.currentCanvasHostUrl() },
-  )
-
   private val connectionManager: ConnectionManager = ConnectionManager(
     prefs = prefs,
     cameraEnabled = { cameraEnabled.value },

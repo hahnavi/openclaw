@@ -23,7 +23,7 @@ export function installConnectedControlUiServerSuite(
   let started: Awaited<ReturnType<StartServerWithClient>> | null = null;
 
   beforeAll(async () => {
-    started = await startServerWithClient(undefined, { controlUiEnabled: true });
+    started = await startServerWithClient(undefined, {});
     onReady({
       server: started.server,
       ws: started.ws,

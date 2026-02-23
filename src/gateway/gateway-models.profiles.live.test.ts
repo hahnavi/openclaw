@@ -560,7 +560,6 @@ async function runGatewayModelSuite(params: GatewayModelSuiteParams) {
   const server = await startGatewayServer(port, {
     bind: "loopback",
     auth: { mode: "token", token },
-    controlUiEnabled: false,
   });
 
   const client = await connectClient({
@@ -1147,7 +1146,6 @@ describeLive("gateway live (dev agent, profile keys)", () => {
     const server = await startGatewayServer(port, {
       bind: "loopback",
       auth: { mode: "token", token },
-      controlUiEnabled: false,
     });
 
     const client = await connectClient({
