@@ -5,7 +5,10 @@ import type { OpenClawConfig } from "../../config/config.js";
 import type { SessionEntry } from "../../config/sessions.js";
 import type { AgentDefaultsConfig } from "../../config/types.agent-defaults.js";
 import { normalizeAccountId } from "../../routing/session-key.js";
-import { parseTelegramTarget } from "../../telegram/targets.js";
+// Stub for removed telegram/targets.js
+const parseTelegramTarget = (target: string): { chatId?: string; messageThreadId?: number } => ({
+  chatId: target,
+});
 import { deliveryContextFromSession } from "../../utils/delivery-context.js";
 import type {
   DeliverableMessageChannel,

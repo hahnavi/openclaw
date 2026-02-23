@@ -5,8 +5,9 @@ import {
 import { createOutboundSendDeps, type CliDeps } from "../cli/outbound-send-deps.js";
 import { withProgress } from "../cli/progress.js";
 import { loadConfig } from "../config/config.js";
-import type { OutboundSendDeps } from "../infra/outbound/deliver.js";
-import { runMessageAction } from "../infra/outbound/message-action-runner.js";
+// Stubs for removed deliver and message-action-runner functionality
+type OutboundSendDeps = Record<string, unknown>;
+const runMessageAction = async (): Promise<null> => null;
 import type { RuntimeEnv } from "../runtime.js";
 import { GATEWAY_CLIENT_MODES, GATEWAY_CLIENT_NAMES } from "../utils/message-channel.js";
 import { buildMessageCliJson, formatMessageCliText } from "./message-format.js";

@@ -9,7 +9,6 @@ import {
   normalizeChatChannelId,
 } from "../channels/registry.js";
 import { isRecord } from "../utils.js";
-import { hasAnyWhatsAppAuth } from "../web/accounts.js";
 import type { OpenClawConfig } from "./config.js";
 import { ensurePluginAllowlisted } from "./plugins-allowlist.js";
 
@@ -69,124 +68,6 @@ function resolveChannelConfig(
   return isRecord(entry) ? entry : null;
 }
 
-function isTelegramConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
-  if (hasNonEmptyString(env.TELEGRAM_BOT_TOKEN)) {
-    return true;
-  }
-  const entry = resolveChannelConfig(cfg, "telegram");
-  if (!entry) {
-    return false;
-  }
-  if (hasNonEmptyString(entry.botToken) || hasNonEmptyString(entry.tokenFile)) {
-    return true;
-  }
-  if (accountsHaveKeys(entry.accounts, ["botToken", "tokenFile"])) {
-    return true;
-  }
-  return recordHasKeys(entry);
-}
-
-function isDiscordConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
-  if (hasNonEmptyString(env.DISCORD_BOT_TOKEN)) {
-    return true;
-  }
-  const entry = resolveChannelConfig(cfg, "discord");
-  if (!entry) {
-    return false;
-  }
-  if (hasNonEmptyString(entry.token)) {
-    return true;
-  }
-  if (accountsHaveKeys(entry.accounts, ["token"])) {
-    return true;
-  }
-  return recordHasKeys(entry);
-}
-
-function isIrcConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
-  if (hasNonEmptyString(env.IRC_HOST) && hasNonEmptyString(env.IRC_NICK)) {
-    return true;
-  }
-  const entry = resolveChannelConfig(cfg, "irc");
-  if (!entry) {
-    return false;
-  }
-  if (hasNonEmptyString(entry.host) || hasNonEmptyString(entry.nick)) {
-    return true;
-  }
-  if (accountsHaveKeys(entry.accounts, ["host", "nick"])) {
-    return true;
-  }
-  return recordHasKeys(entry);
-}
-
-function isSlackConfigured(cfg: OpenClawConfig, env: NodeJS.ProcessEnv): boolean {
-  if (
-    hasNonEmptyString(env.SLACK_BOT_TOKEN) ||
-    hasNonEmptyString(env.SLACK_APP_TOKEN) ||
-    hasNonEmptyString(env.SLACK_USER_TOKEN)
-  ) {
-    return true;
-  }
-  const entry = resolveChannelConfig(cfg, "slack");
-  if (!entry) {
-    return false;
-  }
-  if (
-    hasNonEmptyString(entry.botToken) ||
-    hasNonEmptyString(entry.appToken) ||
-    hasNonEmptyString(entry.userToken)
-  ) {
-    return true;
-  }
-  if (accountsHaveKeys(entry.accounts, ["botToken", "appToken", "userToken"])) {
-    return true;
-  }
-  return recordHasKeys(entry);
-}
-
-function isSignalConfigured(cfg: OpenClawConfig): boolean {
-  const entry = resolveChannelConfig(cfg, "signal");
-  if (!entry) {
-    return false;
-  }
-  if (
-    hasNonEmptyString(entry.account) ||
-    hasNonEmptyString(entry.httpUrl) ||
-    hasNonEmptyString(entry.httpHost) ||
-    typeof entry.httpPort === "number" ||
-    hasNonEmptyString(entry.cliPath)
-  ) {
-    return true;
-  }
-  if (accountsHaveKeys(entry.accounts, ["account", "httpUrl", "httpHost", "cliPath"])) {
-    return true;
-  }
-  return recordHasKeys(entry);
-}
-
-function isIMessageConfigured(cfg: OpenClawConfig): boolean {
-  const entry = resolveChannelConfig(cfg, "imessage");
-  if (!entry) {
-    return false;
-  }
-  if (hasNonEmptyString(entry.cliPath)) {
-    return true;
-  }
-  return recordHasKeys(entry);
-}
-
-function isWhatsAppConfigured(cfg: OpenClawConfig): boolean {
-  if (hasAnyWhatsAppAuth(cfg)) {
-    return true;
-  }
-  const entry = resolveChannelConfig(cfg, "whatsapp");
-  if (!entry) {
-    return false;
-  }
-  return recordHasKeys(entry);
-}
-
 function isGenericChannelConfigured(cfg: OpenClawConfig, channelId: string): boolean {
   const entry = resolveChannelConfig(cfg, channelId);
   return recordHasKeys(entry);
@@ -195,26 +76,10 @@ function isGenericChannelConfigured(cfg: OpenClawConfig, channelId: string): boo
 export function isChannelConfigured(
   cfg: OpenClawConfig,
   channelId: string,
-  env: NodeJS.ProcessEnv = process.env,
+  _env: NodeJS.ProcessEnv = process.env,
 ): boolean {
-  switch (channelId) {
-    case "whatsapp":
-      return isWhatsAppConfigured(cfg);
-    case "telegram":
-      return isTelegramConfigured(cfg, env);
-    case "discord":
-      return isDiscordConfigured(cfg, env);
-    case "irc":
-      return isIrcConfigured(cfg, env);
-    case "slack":
-      return isSlackConfigured(cfg, env);
-    case "signal":
-      return isSignalConfigured(cfg);
-    case "imessage":
-      return isIMessageConfigured(cfg);
-    default:
-      return isGenericChannelConfigured(cfg, channelId);
-  }
+  // All built-in channels have been removed; only generic plugin-based channel detection remains
+  return isGenericChannelConfigured(cfg, channelId);
 }
 
 function collectModelRefs(cfg: OpenClawConfig): string[] {

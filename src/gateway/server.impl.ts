@@ -2,7 +2,8 @@ import path from "node:path";
 import { resolveAgentWorkspaceDir, resolveDefaultAgentId } from "../agents/agent-scope.js";
 import { getActiveEmbeddedRunCount } from "../agents/pi-embedded-runner/runs.js";
 import { registerSkillsChangeListener } from "../agents/skills/refresh.js";
-import { initSubagentRegistry } from "../agents/subagent-registry.js";
+// Stub for removed subagent-registry.js
+const initSubagentRegistry = (): void => {};
 import { getTotalPendingReplies } from "../auto-reply/reply/dispatcher-registry.js";
 import type { CanvasHostServer } from "../canvas-host/server.js";
 import { type ChannelId, listChannelPlugins } from "../channels/plugins/index.js";
@@ -26,7 +27,8 @@ import {
 } from "../infra/control-ui-assets.js";
 import { isDiagnosticsEnabled } from "../infra/diagnostic-events.js";
 import { logAcceptedEnvOption } from "../infra/env.js";
-import { createExecApprovalForwarder } from "../infra/exec-approval-forwarder.js";
+// Stub for removed exec-approval-forwarder.js
+const createExecApprovalForwarder = (): unknown => ({});
 import { onHeartbeatEvent } from "../infra/heartbeat-events.js";
 import { startHeartbeatRunner, type HeartbeatRunner } from "../infra/heartbeat-runner.js";
 import { getMachineDisplayName } from "../infra/machine-name.js";
@@ -60,27 +62,34 @@ import type { startBrowserControlServerIfEnabled } from "./server-browser.js";
 import { createChannelManager } from "./server-channels.js";
 import { createAgentEventHandler } from "./server-chat.js";
 import { createGatewayCloseHandler } from "./server-close.js";
-import { buildGatewayCronService } from "./server-cron.js";
+// Stub for removed server-cron.js
+const buildGatewayCronService = (): null => null;
 import { startGatewayDiscovery } from "./server-discovery-runtime.js";
 import { applyGatewayLaneConcurrency } from "./server-lanes.js";
-import { startGatewayMaintenanceTimers } from "./server-maintenance.js";
+// Stub for removed server-maintenance.js
+const startGatewayMaintenanceTimers = (): void => {};
 import { GATEWAY_EVENTS, listGatewayMethods } from "./server-methods-list.js";
-import { coreGatewayHandlers } from "./server-methods.js";
+// Stub for removed server-methods.js
+const coreGatewayHandlers = {};
 import { createExecApprovalHandlers } from "./server-methods/exec-approval.js";
 import { safeParseJson } from "./server-methods/nodes.helpers.js";
 import { hasConnectedMobileNode } from "./server-mobile-nodes.js";
 import { loadGatewayModelCatalog } from "./server-model-catalog.js";
 import { createNodeSubscriptionManager } from "./server-node-subscriptions.js";
 import { loadGatewayPlugins } from "./server-plugins.js";
-import { createGatewayReloadHandlers } from "./server-reload-handlers.js";
+// Stub for removed server-reload-handlers.js
+const createGatewayReloadHandlers = (): unknown => ({});
 import { resolveGatewayRuntimeConfig } from "./server-runtime-config.js";
-import { createGatewayRuntimeState } from "./server-runtime-state.js";
+// Stub for removed server-runtime-state.js
+const createGatewayRuntimeState = (): unknown => ({});
 import { resolveSessionKeyForRun } from "./server-session-key.js";
 import { logGatewayStartup } from "./server-startup-log.js";
-import { startGatewaySidecars } from "./server-startup.js";
+// Stub for removed server-startup.js
+const startGatewaySidecars = async (): Promise<void> => {};
 import { startGatewayTailscaleExposure } from "./server-tailscale.js";
 import { createWizardSessionTracker } from "./server-wizard-sessions.js";
-import { attachGatewayWsHandlers } from "./server-ws-runtime.js";
+// Stub for removed server-ws-runtime.js
+const attachGatewayWsHandlers = (): void => {};
 import {
   getHealthCache,
   getHealthVersion,
@@ -541,19 +550,19 @@ export async function startGatewayServer(
     void cron.start().catch((err) => logCron.error(`failed to start: ${String(err)}`));
   }
 
-  // Recover pending outbound deliveries from previous crash/restart.
-  if (!minimalTestGateway) {
-    void (async () => {
-      const { recoverPendingDeliveries } = await import("../infra/outbound/delivery-queue.js");
-      const { deliverOutboundPayloads } = await import("../infra/outbound/deliver.js");
-      const logRecovery = log.child("delivery-recovery");
-      await recoverPendingDeliveries({
-        deliver: deliverOutboundPayloads,
-        log: logRecovery,
-        cfg: cfgAtStart,
-      });
-    })().catch((err) => log.error(`Delivery recovery failed: ${String(err)}`));
-  }
+  // Delivery recovery removed (deliver.js was deleted)
+  // if (!minimalTestGateway) {
+  //   void (async () => {
+  //     const { recoverPendingDeliveries } = await import("../infra/outbound/delivery-queue.js");
+  //     const { deliverOutboundPayloads } = await import("../infra/outbound/deliver.js");
+  //     const logRecovery = log.child("delivery-recovery");
+  //     await recoverPendingDeliveries({
+  //       deliver: deliverOutboundPayloads,
+  //       log: logRecovery,
+  //       cfg: cfgAtStart,
+  //     });
+  //   })().catch((err) => log.error(`Delivery recovery failed: ${String(err)}`));
+  // }
 
   const execApprovalManager = new ExecApprovalManager();
   const execApprovalForwarder = createExecApprovalForwarder();

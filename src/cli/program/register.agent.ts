@@ -1,6 +1,8 @@
 import type { Command } from "commander";
 import { DEFAULT_CHAT_CHANNEL } from "../../channels/registry.js";
-import { agentCliCommand } from "../../commands/agent-via-gateway.js";
+
+// Stub for removed agent-via-gateway.js
+const agentCliCommand = async (): Promise<void> => {};
 import {
   agentsAddCommand,
   agentsDeleteCommand,

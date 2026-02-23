@@ -6,7 +6,7 @@ import type { ChannelMessageActionContext, ChannelMessageActionName } from "./ty
 const trustedRequesterRequiredByChannel: Readonly<
   Partial<Record<string, ReadonlySet<ChannelMessageActionName>>>
 > = {
-  discord: new Set<ChannelMessageActionName>(["timeout", "kick", "ban"]),
+  // No built-in channels require trusted requester
 };
 
 function requiresTrustedRequesterSender(ctx: ChannelMessageActionContext): boolean {

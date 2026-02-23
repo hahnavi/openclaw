@@ -95,34 +95,6 @@ const coreEntries: CoreCliEntry[] = [
   {
     commands: [
       {
-        name: "doctor",
-        description: "Health checks + quick fixes for the gateway and channels",
-        hasSubcommands: false,
-      },
-      {
-        name: "dashboard",
-        description: "Open the Control UI with your current token",
-        hasSubcommands: false,
-      },
-      {
-        name: "reset",
-        description: "Reset local config/state (keeps the CLI installed)",
-        hasSubcommands: false,
-      },
-      {
-        name: "uninstall",
-        description: "Uninstall the gateway service + local data (CLI remains)",
-        hasSubcommands: false,
-      },
-    ],
-    register: async ({ program }) => {
-      const mod = await import("./register.maintenance.js");
-      mod.registerMaintenanceCommands(program);
-    },
-  },
-  {
-    commands: [
-      {
         name: "message",
         description: "Send, read, and manage messages",
         hasSubcommands: true,
@@ -164,29 +136,6 @@ const coreEntries: CoreCliEntry[] = [
       mod.registerAgentCommands(program, {
         agentChannelOptions: ctx.agentChannelOptions,
       });
-    },
-  },
-  {
-    commands: [
-      {
-        name: "status",
-        description: "Show channel health and recent session recipients",
-        hasSubcommands: false,
-      },
-      {
-        name: "health",
-        description: "Fetch health from the running gateway",
-        hasSubcommands: false,
-      },
-      {
-        name: "sessions",
-        description: "List stored conversation sessions",
-        hasSubcommands: false,
-      },
-    ],
-    register: async ({ program }) => {
-      const mod = await import("./register.status-health-sessions.js");
-      mod.registerStatusHealthSessionsCommands(program);
     },
   },
   {

@@ -3,7 +3,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { SILENT_REPLY_TOKEN } from "../auto-reply/tokens.js";
 import type { CliDeps } from "../cli/deps.js";
-import { agentCommand } from "../commands/agent.js";
+// Stub for removed commands/agent.js
+const agentCommand = async (): Promise<void> => {};
 import type { OpenClawConfig } from "../config/config.js";
 import {
   resolveAgentIdFromSessionKey,

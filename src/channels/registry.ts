@@ -2,121 +2,26 @@ import { requireActivePluginRegistry } from "../plugins/runtime.js";
 import type { ChannelMeta } from "./plugins/types.js";
 import type { ChannelId } from "./plugins/types.js";
 
-// Channel docking: add new core channels here (order + meta + aliases), then
-// register the plugin in its extension entrypoint and keep protocol IDs in sync.
-export const CHAT_CHANNEL_ORDER = [
-  "telegram",
-  "whatsapp",
-  "discord",
-  "irc",
-  "googlechat",
-  "slack",
-  "signal",
-  "imessage",
-] as const;
+// All built-in chat channels have been removed. Channels are now loaded via plugins.
+// Mattermost is the primary supported channel via its extension plugin.
 
-export type ChatChannelId = (typeof CHAT_CHANNEL_ORDER)[number];
+// Empty arrays since no core channels remain
+export const CHAT_CHANNEL_ORDER: readonly string[] = [];
+
+export type ChatChannelId = string;
 
 export const CHANNEL_IDS = [...CHAT_CHANNEL_ORDER] as const;
 
-export const DEFAULT_CHAT_CHANNEL: ChatChannelId = "whatsapp";
+// No default chat channel - must be configured via plugin
+export const DEFAULT_CHAT_CHANNEL: ChatChannelId | null = null;
 
 export type ChatChannelMeta = ChannelMeta;
 
-const WEBSITE_URL = "https://openclaw.ai";
+// Empty meta record since no core channels remain
+const CHAT_CHANNEL_META: Record<string, ChannelMeta> = {};
 
-const CHAT_CHANNEL_META: Record<ChatChannelId, ChannelMeta> = {
-  telegram: {
-    id: "telegram",
-    label: "Telegram",
-    selectionLabel: "Telegram (Bot API)",
-    detailLabel: "Telegram Bot",
-    docsPath: "/channels/telegram",
-    docsLabel: "telegram",
-    blurb: "simplest way to get started — register a bot with @BotFather and get going.",
-    systemImage: "paperplane",
-    selectionDocsPrefix: "",
-    selectionDocsOmitLabel: true,
-    selectionExtras: [WEBSITE_URL],
-  },
-  whatsapp: {
-    id: "whatsapp",
-    label: "WhatsApp",
-    selectionLabel: "WhatsApp (QR link)",
-    detailLabel: "WhatsApp Web",
-    docsPath: "/channels/whatsapp",
-    docsLabel: "whatsapp",
-    blurb: "works with your own number; recommend a separate phone + eSIM.",
-    systemImage: "message",
-  },
-  discord: {
-    id: "discord",
-    label: "Discord",
-    selectionLabel: "Discord (Bot API)",
-    detailLabel: "Discord Bot",
-    docsPath: "/channels/discord",
-    docsLabel: "discord",
-    blurb: "very well supported right now.",
-    systemImage: "bubble.left.and.bubble.right",
-  },
-  irc: {
-    id: "irc",
-    label: "IRC",
-    selectionLabel: "IRC (Server + Nick)",
-    detailLabel: "IRC",
-    docsPath: "/channels/irc",
-    docsLabel: "irc",
-    blurb: "classic IRC networks with DM/channel routing and pairing controls.",
-    systemImage: "network",
-  },
-  googlechat: {
-    id: "googlechat",
-    label: "Google Chat",
-    selectionLabel: "Google Chat (Chat API)",
-    detailLabel: "Google Chat",
-    docsPath: "/channels/googlechat",
-    docsLabel: "googlechat",
-    blurb: "Google Workspace Chat app with HTTP webhook.",
-    systemImage: "message.badge",
-  },
-  slack: {
-    id: "slack",
-    label: "Slack",
-    selectionLabel: "Slack (Socket Mode)",
-    detailLabel: "Slack Bot",
-    docsPath: "/channels/slack",
-    docsLabel: "slack",
-    blurb: "supported (Socket Mode).",
-    systemImage: "number",
-  },
-  signal: {
-    id: "signal",
-    label: "Signal",
-    selectionLabel: "Signal (signal-cli)",
-    detailLabel: "Signal REST",
-    docsPath: "/channels/signal",
-    docsLabel: "signal",
-    blurb: 'signal-cli linked device; more setup (David Reagans: "Hop on Discord.").',
-    systemImage: "antenna.radiowaves.left.and.right",
-  },
-  imessage: {
-    id: "imessage",
-    label: "iMessage",
-    selectionLabel: "iMessage (imsg)",
-    detailLabel: "iMessage",
-    docsPath: "/channels/imessage",
-    docsLabel: "imessage",
-    blurb: "this is still a work in progress.",
-    systemImage: "message.fill",
-  },
-};
-
-export const CHAT_CHANNEL_ALIASES: Record<string, ChatChannelId> = {
-  imsg: "imessage",
-  "internet-relay-chat": "irc",
-  "google-chat": "googlechat",
-  gchat: "googlechat",
-};
+// Empty aliases since no core channels remain
+export const CHAT_CHANNEL_ALIASES: Record<string, string> = {};
 
 const normalizeChannelKey = (raw?: string | null): string | undefined => {
   const normalized = raw?.trim().toLowerCase();
@@ -131,7 +36,7 @@ export function listChatChannelAliases(): string[] {
   return Object.keys(CHAT_CHANNEL_ALIASES);
 }
 
-export function getChatChannelMeta(id: ChatChannelId): ChatChannelMeta {
+export function getChatChannelMeta(id: ChatChannelId): ChatChannelMeta | undefined {
   return CHAT_CHANNEL_META[id];
 }
 

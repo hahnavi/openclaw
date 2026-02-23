@@ -1,7 +1,9 @@
 import type { ReplyPayload } from "../../auto-reply/types.js";
 import type { OpenClawConfig } from "../../config/config.js";
 import type { GroupToolPolicyConfig } from "../../config/types.tools.js";
-import type { OutboundDeliveryResult, OutboundSendDeps } from "../../infra/outbound/deliver.js";
+// Stubs for removed deliver.js
+type OutboundDeliveryResult = Record<string, unknown>;
+type OutboundSendDeps = Record<string, unknown>;
 import type { OutboundIdentity } from "../../infra/outbound/identity.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import type {

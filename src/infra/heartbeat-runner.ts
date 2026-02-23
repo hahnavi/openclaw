@@ -16,7 +16,9 @@ import {
   resolveHeartbeatPrompt as resolveHeartbeatPromptText,
   stripHeartbeatToken,
 } from "../auto-reply/heartbeat.js";
-import { getReplyFromConfig } from "../auto-reply/reply.js";
+// Stub for removed auto-reply/reply.js
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const getReplyFromConfig = async (_ctx: unknown, _opts: unknown, _cfg: unknown): Promise<ReplyPayload | ReplyPayload[] | undefined> => undefined;
 import { HEARTBEAT_TOKEN } from "../auto-reply/tokens.js";
 import type { ReplyPayload } from "../auto-reply/types.js";
 import { getChannelPlugin } from "../channels/plugins/index.js";
@@ -57,8 +59,10 @@ import {
   requestHeartbeatNow,
   setHeartbeatWakeHandler,
 } from "./heartbeat-wake.js";
-import type { OutboundSendDeps } from "./outbound/deliver.js";
-import { deliverOutboundPayloads } from "./outbound/deliver.js";
+// Stubs for removed deliver.js
+type OutboundSendDeps = Record<string, unknown>;
+// eslint-disable-next-line @typescript-eslint/no-unused-vars
+const deliverOutboundPayloads = async (_params: unknown): Promise<void> => {};
 import {
   resolveHeartbeatDeliveryTarget,
   resolveHeartbeatSenderContext,

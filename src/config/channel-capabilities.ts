@@ -1,16 +1,16 @@
 import { normalizeChannelId } from "../channels/plugins/index.js";
 import { normalizeAccountId } from "../routing/session-key.js";
 import type { OpenClawConfig } from "./config.js";
-import type { TelegramCapabilitiesConfig } from "./types.telegram.js";
 
-type CapabilitiesConfig = TelegramCapabilitiesConfig;
+// Generic capabilities config type (replaces TelegramCapabilitiesConfig)
+type CapabilitiesConfig = string[] | Record<string, string>;
 
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((entry) => typeof entry === "string");
 
 function normalizeCapabilities(capabilities: CapabilitiesConfig | undefined): string[] | undefined {
   // Handle object-format capabilities (e.g., { inlineButtons: "dm" }) gracefully.
-  // Channel-specific handlers (like resolveTelegramInlineButtonsScope) process these separately.
+  // Channel-specific handlers process these separately.
   if (!isStringArray(capabilities)) {
     return undefined;
   }

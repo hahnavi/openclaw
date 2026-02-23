@@ -1,8 +1,10 @@
 import { getChannelPlugin } from "../channels/plugins/index.js";
 import type { ChannelId, ChannelMessageActionName } from "../channels/plugins/types.js";
-import type { OutboundDeliveryResult } from "../infra/outbound/deliver.js";
-import { formatGatewaySummary, formatOutboundDeliverySummary } from "../infra/outbound/format.js";
-import type { MessageActionRunResult } from "../infra/outbound/message-action-runner.js";
+// Types stubbed for removed deliver and message-action-runner modules
+type OutboundDeliveryResult = Record<string, unknown>;
+type MessageActionRunResult = Record<string, unknown>;
+const formatGatewaySummary = (): string => "(gateway summary unavailable)";
+const formatOutboundDeliverySummary = (): string => "(delivery summary unavailable)";
 import { formatTargetDisplay } from "../infra/outbound/target-resolver.js";
 import { renderTable } from "../terminal/table.js";
 import { isRich, theme } from "../terminal/theme.js";

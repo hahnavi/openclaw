@@ -1,4 +1,5 @@
-import { loadAndMaybeMigrateDoctorConfig } from "../../commands/doctor-config-flow.js";
+// Stub for removed doctor-config-flow.js
+const loadAndMaybeMigrateDoctorConfig = async (): Promise<null> => null;
 import { readConfigFileSnapshot } from "../../config/config.js";
 import type { RuntimeEnv } from "../../runtime.js";
 import { colorize, isRich, theme } from "../../terminal/theme.js";

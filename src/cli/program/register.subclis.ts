@@ -234,15 +234,6 @@ const entries: SubCliEntry[] = [
     },
   },
   {
-    name: "channels",
-    description: "Manage connected chat channels (Telegram, Discord, etc.)",
-    hasSubcommands: true,
-    register: async (program) => {
-      const mod = await import("../channels-cli.js");
-      mod.registerChannelsCli(program);
-    },
-  },
-  {
     name: "directory",
     description: "Lookup contact and group IDs (self, peers, groups) for supported chat channels",
     hasSubcommands: true,
@@ -252,30 +243,12 @@ const entries: SubCliEntry[] = [
     },
   },
   {
-    name: "security",
-    description: "Security tools and local config audits",
-    hasSubcommands: true,
-    register: async (program) => {
-      const mod = await import("../security-cli.js");
-      mod.registerSecurityCli(program);
-    },
-  },
-  {
     name: "skills",
     description: "List and inspect available skills",
     hasSubcommands: true,
     register: async (program) => {
       const mod = await import("../skills-cli.js");
       mod.registerSkillsCli(program);
-    },
-  },
-  {
-    name: "update",
-    description: "Update OpenClaw and inspect update channel status",
-    hasSubcommands: true,
-    register: async (program) => {
-      const mod = await import("../update-cli.js");
-      mod.registerUpdateCli(program);
     },
   },
   {

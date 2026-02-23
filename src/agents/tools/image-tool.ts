@@ -1,9 +1,21 @@
+import fs from "node:fs/promises";
 import path from "node:path";
 import { type Api, type Context, complete, type Model } from "@mariozechner/pi-ai";
 import { Type } from "@sinclair/typebox";
 import type { OpenClawConfig } from "../../config/config.js";
 import { resolveUserPath } from "../../utils.js";
-import { getDefaultLocalRoots, loadWebMedia } from "../../web/media.js";
+
+// Simple replacement for removed web/media.js functions
+async function loadWebMediaSimple(filePath: string): Promise<{ kind: string; buffer: Buffer; contentType?: string }> {
+  const buffer = await fs.readFile(filePath);
+  const ext = path.extname(filePath).toLowerCase();
+  const mimeType = ext === ".png" ? "image/png" :
+                   ext === ".jpg" || ext === ".jpeg" ? "image/jpeg" :
+                   ext === ".gif" ? "image/gif" :
+                   ext === ".webp" ? "image/webp" :
+                   "application/octet-stream";
+  return { kind: "image", buffer, contentType: mimeType };
+}
 import { ensureAuthProfileStore, listProfilesForProvider } from "../auth-profiles.js";
 import { DEFAULT_MODEL, DEFAULT_PROVIDER } from "../defaults.js";
 import { getApiKeyForModel, requireApiKey, resolveEnvApiKey } from "../model-auth.js";
@@ -345,12 +357,8 @@ export function createImageTool(options?: {
     : "Analyze one or more images with the configured image model (agents.defaults.imageModel). Use image for a single path/URL, or images for multiple (up to 20). Provide a prompt describing what to analyze.";
 
   const localRoots = (() => {
-    const roots = getDefaultLocalRoots();
     const workspaceDir = normalizeWorkspaceDir(options?.workspaceDir);
-    if (!workspaceDir) {
-      return roots;
-    }
-    return Array.from(new Set([...roots, workspaceDir]));
+    return workspaceDir ? [workspaceDir] : [];
   })();
 
   return {
@@ -499,25 +507,12 @@ export function createImageTool(options?: {
 
         const media = isDataUrl
           ? decodeDataUrl(resolvedImage)
-          : sandboxConfig
-            ? await loadWebMedia(resolvedPath ?? resolvedImage, {
-                maxBytes,
-                sandboxValidated: true,
-                readFile: (filePath) =>
-                  sandboxConfig.bridge.readFile({ filePath, cwd: sandboxConfig.root }),
-              })
-            : await loadWebMedia(resolvedPath ?? resolvedImage, {
-                maxBytes,
-                localRoots,
-              });
+          : await loadWebMediaSimple(resolvedPath ?? resolvedImage);
         if (media.kind !== "image") {
           throw new Error(`Unsupported media type: ${media.kind}`);
         }
 
-        const mimeType =
-          ("contentType" in media && media.contentType) ||
-          ("mimeType" in media && media.mimeType) ||
-          "image/png";
+        const mimeType = media.contentType || "image/png";
         const base64 = media.buffer.toString("base64");
         loadedImages.push({
           base64,

@@ -5,7 +5,8 @@ import {
   listChatCommandsForConfig,
   normalizeCommandBody,
 } from "./commands-registry.js";
-import { isAbortTrigger } from "./reply/abort.js";
+// Stub for removed reply/abort.js
+const isAbortTrigger = (_text?: string): boolean => false;
 
 export function hasControlCommand(
   text?: string,

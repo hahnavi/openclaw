@@ -1,22 +1,19 @@
-import type { OutboundSendDeps } from "../infra/outbound/deliver.js";
+// All built-in channel dependencies have been removed.
+// Channels are now handled through the plugin system.
+
+// Stub types for removed deliver.js
+export type OutboundSendDeps = Record<string, unknown>;
 
 export type CliOutboundSendSource = {
-  sendMessageWhatsApp: OutboundSendDeps["sendWhatsApp"];
-  sendMessageTelegram: OutboundSendDeps["sendTelegram"];
-  sendMessageDiscord: OutboundSendDeps["sendDiscord"];
-  sendMessageSlack: OutboundSendDeps["sendSlack"];
-  sendMessageSignal: OutboundSendDeps["sendSignal"];
-  sendMessageIMessage: OutboundSendDeps["sendIMessage"];
+  sendMessageWhatsApp?: unknown;
+  sendMessageTelegram?: unknown;
+  sendMessageDiscord?: unknown;
+  sendMessageSlack?: unknown;
+  sendMessageSignal?: unknown;
+  sendMessageIMessage?: unknown;
 };
 
 // Provider docking: extend this mapping when adding new outbound send deps.
-export function createOutboundSendDepsFromCliSource(deps: CliOutboundSendSource): OutboundSendDeps {
-  return {
-    sendWhatsApp: deps.sendMessageWhatsApp,
-    sendTelegram: deps.sendMessageTelegram,
-    sendDiscord: deps.sendMessageDiscord,
-    sendSlack: deps.sendMessageSlack,
-    sendSignal: deps.sendMessageSignal,
-    sendIMessage: deps.sendMessageIMessage,
-  };
+export function createOutboundSendDepsFromCliSource(_deps: CliOutboundSendSource): OutboundSendDeps {
+  return {};
 }

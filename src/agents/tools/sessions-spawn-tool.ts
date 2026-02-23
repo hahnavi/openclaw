@@ -1,7 +1,9 @@
 import { Type } from "@sinclair/typebox";
 import type { GatewayMessageChannel } from "../../utils/message-channel.js";
 import { optionalStringEnum } from "../schema/typebox.js";
-import { SUBAGENT_SPAWN_MODES, spawnSubagentDirect } from "../subagent-spawn.js";
+// Stubs for removed subagent-spawn.js
+const SUBAGENT_SPAWN_MODES = ["async", "sync"] as const;
+const spawnSubagentDirect = async (): Promise<unknown> => ({ success: false, error: "subagent spawn removed" });
 import type { AnyAgentTool } from "./common.js";
 import { jsonResult, readStringParam } from "./common.js";
 
