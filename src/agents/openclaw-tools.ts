@@ -19,7 +19,8 @@ import { createSessionsSendTool } from "./tools/sessions-send-tool.js";
 import { createSessionsSpawnTool } from "./tools/sessions-spawn-tool.js";
 // Stub for removed subagents-tool.js
 const createSubagentsTool = (): null => null;
-import { createTtsTool } from "./tools/tts-tool.js";
+// Stub for removed TTS tool
+const createTtsTool = (): null => null;
 import { createWebFetchTool, createWebSearchTool } from "./tools/web-tools.js";
 import { resolveWorkspaceRoot } from "./workspace-dir.js";
 

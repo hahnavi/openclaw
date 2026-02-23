@@ -74,7 +74,10 @@ import {
 } from "../../pairing/pairing-store.js";
 import { runCommandWithTimeout } from "../../process/exec.js";
 import { resolveAgentRoute } from "../../routing/resolve-route.js";
-import { textToSpeechTelephony } from "../../tts/tts.js";
+// Stub for removed TTS
+const textToSpeechTelephony = () => {
+  throw new Error("TTS has been removed");
+};
 import { formatNativeDependencyHint } from "./native-deps.js";
 import type { PluginRuntime } from "./types.js";
 
@@ -232,16 +235,19 @@ function createRuntimeChannel(): PluginRuntime["channel"] {
 }
 
 function createStubChannel(): Record<string, unknown> {
-  return new Proxy({}, {
-    get: (_target, prop) => {
-      if (typeof prop === "string") {
-        return () => {
-          throw new Error(`Channel functionality has been removed`);
-        };
-      }
-      return undefined;
+  return new Proxy(
+    {},
+    {
+      get: (_target, prop) => {
+        if (typeof prop === "string") {
+          return () => {
+            throw new Error(`Channel functionality has been removed`);
+          };
+        }
+        return undefined;
+      },
     },
-  });
+  );
 }
 
 function createRuntimeLogging(): PluginRuntime["logging"] {

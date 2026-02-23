@@ -1816,9 +1816,9 @@ describe("security audit", () => {
     const cfg: OpenClawConfig = {
       plugins: {
         installs: {
-          "voice-call": {
+          "test-plugin": {
             source: "npm",
-            spec: "@openclaw/voice-call",
+            spec: "@openclaw/test-plugin",
           },
         },
       },
@@ -1856,9 +1856,9 @@ describe("security audit", () => {
     const cfg: OpenClawConfig = {
       plugins: {
         installs: {
-          "voice-call": {
+          "test-plugin": {
             source: "npm",
-            spec: "@openclaw/voice-call@1.2.3",
+            spec: "@openclaw/test-plugin@1.2.3",
             integrity: "sha512-plugin",
           },
         },
@@ -1893,13 +1893,13 @@ describe("security audit", () => {
   it("warns when install records drift from installed package versions", async () => {
     const tmp = await makeTmpDir("install-version-drift");
     const stateDir = path.join(tmp, "state");
-    const pluginDir = path.join(stateDir, "extensions", "voice-call");
+    const pluginDir = path.join(stateDir, "extensions", "test-plugin");
     const hookDir = path.join(stateDir, "hooks", "test-hooks");
     await fs.mkdir(pluginDir, { recursive: true });
     await fs.mkdir(hookDir, { recursive: true });
     await fs.writeFile(
       path.join(pluginDir, "package.json"),
-      JSON.stringify({ name: "@openclaw/voice-call", version: "9.9.9" }),
+      JSON.stringify({ name: "@openclaw/test-plugin", version: "9.9.9" }),
       "utf-8",
     );
     await fs.writeFile(
@@ -1911,9 +1911,9 @@ describe("security audit", () => {
     const cfg: OpenClawConfig = {
       plugins: {
         installs: {
-          "voice-call": {
+          "test-plugin": {
             source: "npm",
-            spec: "@openclaw/voice-call@1.2.3",
+            spec: "@openclaw/test-plugin@1.2.3",
             integrity: "sha512-plugin",
             resolvedVersion: "1.2.3",
           },

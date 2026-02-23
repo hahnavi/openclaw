@@ -18,7 +18,7 @@ describe("config schema", () => {
     const res = buildConfigSchema({
       plugins: [
         {
-          id: "voice-call",
+          id: "test-plugin",
           name: "Voice Call",
           description: "Outbound voice calls",
           configUiHints: {
@@ -29,19 +29,21 @@ describe("config schema", () => {
       ],
     });
 
-    expect(res.uiHints["plugins.entries.voice-call"]?.label).toBe("Voice Call");
-    expect(res.uiHints["plugins.entries.voice-call.config"]?.label).toBe("Voice Call Config");
-    expect(res.uiHints["plugins.entries.voice-call.config.twilio.authToken"]?.label).toBe(
+    expect(res.uiHints["plugins.entries.test-plugin"]?.label).toBe("Voice Call");
+    expect(res.uiHints["plugins.entries.test-plugin.config"]?.label).toBe("Voice Call Config");
+    expect(res.uiHints["plugins.entries.test-plugin.config.twilio.authToken"]?.label).toBe(
       "Auth Token",
     );
-    expect(res.uiHints["plugins.entries.voice-call.config.twilio.authToken"]?.sensitive).toBe(true);
+    expect(res.uiHints["plugins.entries.test-plugin.config.twilio.authToken"]?.sensitive).toBe(
+      true,
+    );
   });
 
   it("does not re-mark existing non-sensitive token-like fields", () => {
     const res = buildConfigSchema({
       plugins: [
         {
-          id: "voice-call",
+          id: "test-plugin",
           configUiHints: {
             tokens: { label: "Tokens", sensitive: false },
           },
@@ -49,14 +51,14 @@ describe("config schema", () => {
       ],
     });
 
-    expect(res.uiHints["plugins.entries.voice-call.config.tokens"]?.sensitive).toBe(false);
+    expect(res.uiHints["plugins.entries.test-plugin.config.tokens"]?.sensitive).toBe(false);
   });
 
   it("merges plugin + channel schemas", () => {
     const res = buildConfigSchema({
       plugins: [
         {
-          id: "voice-call",
+          id: "test-plugin",
           name: "Voice Call",
           configSchema: {
             type: "object",
@@ -87,7 +89,7 @@ describe("config schema", () => {
     const entriesNode = pluginsNode?.properties as Record<string, unknown> | undefined;
     const entriesProps = entriesNode?.entries as Record<string, unknown> | undefined;
     const entryProps = entriesProps?.properties as Record<string, unknown> | undefined;
-    const pluginEntry = entryProps?.["voice-call"] as Record<string, unknown> | undefined;
+    const pluginEntry = entryProps?.["test-plugin"] as Record<string, unknown> | undefined;
     const pluginConfig = pluginEntry?.properties as Record<string, unknown> | undefined;
     const pluginConfigSchema = pluginConfig?.config as Record<string, unknown> | undefined;
     const pluginConfigProps = pluginConfigSchema?.properties as Record<string, unknown> | undefined;

@@ -81,7 +81,7 @@ async function createVoiceCallArchive(params: {
   const pkgDir = path.join(params.workDir, "package");
   writePluginPackage({
     pkgDir,
-    name: "@openclaw/voice-call",
+    name: "@openclaw/test-plugin",
     version: params.version,
     extensions: ["./dist/index.js"],
   });
@@ -209,8 +209,8 @@ describe("installPluginFromArchive", () => {
     if (!result.ok) {
       return;
     }
-    expect(result.pluginId).toBe("voice-call");
-    expectPluginFiles(result, stateDir, "voice-call");
+    expect(result.pluginId).toBe("test-plugin");
+    expectPluginFiles(result, stateDir, "test-plugin");
   });
 
   it("rejects installing when plugin already exists", async () => {
@@ -470,7 +470,7 @@ describe("installPluginFromNpmSpec", () => {
     fs.writeFileSync(
       path.join(pkgDir, "package.json"),
       JSON.stringify({
-        name: "@openclaw/voice-call",
+        name: "@openclaw/test-plugin",
         version: "0.0.1",
         openclaw: { extensions: ["./dist/index.js"] },
       }),
@@ -484,7 +484,7 @@ describe("installPluginFromNpmSpec", () => {
     const run = vi.mocked(runCommandWithTimeout);
 
     let packTmpDir = "";
-    const packedName = "voice-call-0.0.1.tgz";
+    const packedName = "test-plugin-0.0.1.tgz";
     run.mockImplementation(async (argv, opts) => {
       if (argv[0] === "npm" && argv[1] === "pack") {
         packTmpDir = String(typeof opts === "number" ? "" : (opts.cwd ?? ""));
@@ -493,8 +493,8 @@ describe("installPluginFromNpmSpec", () => {
           code: 0,
           stdout: JSON.stringify([
             {
-              id: "@openclaw/voice-call@0.0.1",
-              name: "@openclaw/voice-call",
+              id: "@openclaw/test-plugin@0.0.1",
+              name: "@openclaw/test-plugin",
               version: "0.0.1",
               filename: packedName,
               integrity: "sha512-plugin-test",
@@ -511,7 +511,7 @@ describe("installPluginFromNpmSpec", () => {
     });
 
     const result = await installPluginFromNpmSpec({
-      spec: "@openclaw/voice-call@0.0.1",
+      spec: "@openclaw/test-plugin@0.0.1",
       extensionsDir,
       logger: { info: () => {}, warn: () => {} },
     });
@@ -519,12 +519,12 @@ describe("installPluginFromNpmSpec", () => {
     if (!result.ok) {
       return;
     }
-    expect(result.npmResolution?.resolvedSpec).toBe("@openclaw/voice-call@0.0.1");
+    expect(result.npmResolution?.resolvedSpec).toBe("@openclaw/test-plugin@0.0.1");
     expect(result.npmResolution?.integrity).toBe("sha512-plugin-test");
 
     expectSingleNpmPackIgnoreScriptsCall({
       calls: run.mock.calls,
-      expectedSpec: "@openclaw/voice-call@0.0.1",
+      expectedSpec: "@openclaw/test-plugin@0.0.1",
     });
 
     expect(packTmpDir).not.toBe("");
@@ -546,10 +546,10 @@ describe("installPluginFromNpmSpec", () => {
       code: 0,
       stdout: JSON.stringify([
         {
-          id: "@openclaw/voice-call@0.0.1",
-          name: "@openclaw/voice-call",
+          id: "@openclaw/test-plugin@0.0.1",
+          name: "@openclaw/test-plugin",
           version: "0.0.1",
-          filename: "voice-call-0.0.1.tgz",
+          filename: "test-plugin-0.0.1.tgz",
           integrity: "sha512-new",
           shasum: "newshasum",
         },
@@ -562,7 +562,7 @@ describe("installPluginFromNpmSpec", () => {
 
     const onIntegrityDrift = vi.fn(async () => false);
     const result = await installPluginFromNpmSpec({
-      spec: "@openclaw/voice-call@0.0.1",
+      spec: "@openclaw/test-plugin@0.0.1",
       expectedIntegrity: "sha512-old",
       onIntegrityDrift,
     });

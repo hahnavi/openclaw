@@ -37,6 +37,9 @@ import type { MsgContext, TemplateContext } from "../templating.js";
 import { normalizeInboundTextNewlines } from "./inbound-text.js";
 import { stripMentions, stripStructuralPrefixes } from "./mentions.js";
 
+// Stub for removed TTS auto mode
+type TtsAutoMode = "off" | "always" | "inbound" | "tagged";
+
 const log = createSubsystemLogger("session-init");
 
 export type SessionInitResult = {

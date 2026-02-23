@@ -336,15 +336,15 @@ describe("redactConfigSnapshot", () => {
 
   it("keeps regex fallback for extension keys not covered by uiHints", () => {
     const hints: ConfigUiHints = {
-      "plugins.entries.voice-call.config": { label: "Voice Call Config" },
+      "plugins.entries.test-plugin.config": { label: "Voice Call Config" },
       "channels.my-channel": { label: "My Channel" },
     };
     const snapshot = makeSnapshot({
       plugins: {
         entries: {
-          "voice-call": {
+          "test-plugin": {
             config: {
-              apiToken: "voice-call-secret-token",
+              apiToken: "test-plugin-secret-token",
               displayName: "Voice call extension",
             },
           },
@@ -360,8 +360,8 @@ describe("redactConfigSnapshot", () => {
 
     const redacted = redactConfigSnapshot(snapshot, hints);
     const config = redacted.config as typeof snapshot.config;
-    expect(config.plugins.entries["voice-call"].config.apiToken).toBe(REDACTED_SENTINEL);
-    expect(config.plugins.entries["voice-call"].config.displayName).toBe("Voice call extension");
+    expect(config.plugins.entries["test-plugin"].config.apiToken).toBe(REDACTED_SENTINEL);
+    expect(config.plugins.entries["test-plugin"].config.displayName).toBe("Voice call extension");
     expect(config.channels["my-channel"].accessToken).toBe(REDACTED_SENTINEL);
     expect(config.channels["my-channel"].room).toBe("general");
 
@@ -371,13 +371,13 @@ describe("redactConfigSnapshot", () => {
 
   it("honors sensitive:false for extension keys even with regex fallback", () => {
     const hints: ConfigUiHints = {
-      "plugins.entries.voice-call.config": { label: "Voice Call Config" },
-      "plugins.entries.voice-call.config.apiToken": { sensitive: false },
+      "plugins.entries.test-plugin.config": { label: "Voice Call Config" },
+      "plugins.entries.test-plugin.config.apiToken": { sensitive: false },
     };
     const snapshot = makeSnapshot({
       plugins: {
         entries: {
-          "voice-call": {
+          "test-plugin": {
             config: {
               apiToken: "not-secret-on-purpose",
             },
@@ -388,7 +388,7 @@ describe("redactConfigSnapshot", () => {
 
     const redacted = redactConfigSnapshot(snapshot, hints);
     const config = redacted.config as typeof snapshot.config;
-    expect(config.plugins.entries["voice-call"].config.apiToken).toBe("not-secret-on-purpose");
+    expect(config.plugins.entries["test-plugin"].config.apiToken).toBe("not-secret-on-purpose");
   });
 
   it("round-trips nested and array sensitivity cases", () => {

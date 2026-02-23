@@ -49,7 +49,7 @@ describe("hooks cli formatting", () => {
           name: "plugin-hook",
           description: "Hook from plugin",
           source: "openclaw-plugin",
-          pluginId: "voice-call",
+          pluginId: "test-plugin",
           filePath: "/tmp/hooks/plugin-hook/HOOK.md",
           baseDir: "/tmp/hooks/plugin-hook",
           handlerPath: "/tmp/hooks/plugin-hook/handler.js",
@@ -67,6 +67,6 @@ describe("hooks cli formatting", () => {
     };
 
     const output = formatHooksList(pluginReport, {});
-    expect(output).toContain("plugin:voice-call");
+    expect(output).toContain("plugin:test-plugin");
   });
 });

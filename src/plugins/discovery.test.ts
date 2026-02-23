@@ -93,13 +93,13 @@ describe("discoverOpenClawPlugins", () => {
 
   it("derives unscoped ids for scoped packages", async () => {
     const stateDir = makeTempDir();
-    const globalExt = path.join(stateDir, "extensions", "voice-call-pack");
+    const globalExt = path.join(stateDir, "extensions", "test-plugin-pack");
     fs.mkdirSync(path.join(globalExt, "src"), { recursive: true });
 
     fs.writeFileSync(
       path.join(globalExt, "package.json"),
       JSON.stringify({
-        name: "@openclaw/voice-call",
+        name: "@openclaw/test-plugin",
         openclaw: { extensions: ["./src/index.ts"] },
       }),
       "utf-8",
@@ -115,7 +115,7 @@ describe("discoverOpenClawPlugins", () => {
     });
 
     const ids = candidates.map((c) => c.idHint);
-    expect(ids).toContain("voice-call");
+    expect(ids).toContain("test-plugin");
   });
 
   it("treats configured directory paths as plugin packages", async () => {
